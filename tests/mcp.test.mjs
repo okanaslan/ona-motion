@@ -18,7 +18,7 @@ test('stdio server discovers tools, validates inputs, serves resources and shuts
   t.after(async () => { await client.close(); fs.rmSync(root, { recursive: true, force: true }); });
   await client.connect(transport);
   const tools = await client.listTools();
-  assert.deepEqual(tools.tools.map(tool => tool.name).sort(), ['cancel_job', 'check_environment', 'create_project', 'get_job', 'inspect_project', 'list_jobs', 'render_frames', 'render_video']);
+  assert.deepEqual(tools.tools.map(tool => tool.name).sort(), ['cancel_job', 'check_environment', 'create_project', 'extract_video_frames', 'get_job', 'inspect_project', 'inspect_video', 'list_jobs', 'read_scene', 'render_frames', 'render_video', 'update_project', 'update_scene']);
   const created = await client.callTool({ name: 'create_project', arguments: { name: 'demo', duration: 3 } });
   assert.equal(created.structuredContent.ok, true); assert.equal(created.structuredContent.result.frames, 180);
   const inspected = await client.callTool({ name: 'inspect_project', arguments: { project: 'examples/demo' } });

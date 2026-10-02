@@ -1,6 +1,6 @@
 # ona-motion MCP server
 
-The local MCP server gives a coding agent tools to create projects, inspect their configuration, render images, and export videos. The CLI and MCP server use the same operations in `lib/`.
+The local MCP server gives a coding agent tools to create and author projects, render previews, export videos and inspect encoded output. Consumers use public resources and tools without access to the server repository. The CLI and MCP server use the same operations in `lib/`.
 
 ## Start here
 
@@ -47,6 +47,7 @@ Use an absolute Node executable path if the desktop client's PATH does not inclu
 4. Read `ona-motion://scene-guide`, then create a project with `create_project`, for example `{"name":"launch-teaser","duration":15,"width":1080,"height":1080}`. Use `read_scene` and submit the approved scene source with `update_scene` and its returned revision, then render another contact sheet.
 5. Existing `out/audio.wav` is used automatically. MCP audio generation is not available; missing audio produces a silent video.
 6. With ffmpeg available, call `render_video` with `{"project":"examples/hello","subframes":1}`. Save the returned `result.id` and call `get_job` with `{"jobId":"<returned UUID>"}` until the job reaches a terminal state.
+7. Call `inspect_video` with `{"jobId":"<completed UUID>","countFrames":true,"verifyDecode":true}` to measure the encoded file. Call `extract_video_frames` with the same job ID and `count: 6`, then inspect the returned contact sheet.
 
 A scene is authored in code supplied by the consumer. The MCP interface supports reading and updating scenes and project configuration; consumers do not need the server repository or local filesystem tools. It does not generate audio or run Python sound scripts.
 
@@ -92,6 +93,8 @@ Maintainers can find versioned sources under [`skills/`](../skills/) and registr
 | `get_job` | `jobId` | State, progress, error or completed video artifact |
 | `list_jobs` | optional `limit` (1–20, default 10) | Recent jobs, including records from previous sessions |
 | `cancel_job` | `jobId` | Updated state; terminal jobs keep their state |
+| `inspect_video` | `jobId` or `project` + `video`; optional `countFrames`, `verifyDecode` | Encoded dimensions, duration, frame rates/count provenance, audio streams and decode status |
+| `extract_video_frames` | Same video reference; optional `frames` or `times`, `count`, `sheet` | Encoded PNG stills/contact sheet, actual timestamps and artifact resources |
 
 Project paths are relative to the server's configured workspace. Tools cannot select another workspace or escape it with traversal or external symlinks.
 
@@ -102,6 +105,24 @@ Project paths are relative to the server's configured workspace. Tools cannot se
 ```
 
 Choose either `frames` or `times`. Without either, `count` evenly spaced frames are selected (default 12, maximum 12). `sheet` defaults to true. Images embedded in the tool result are previews, at most 1024 pixels on their longest side. The full-resolution files remain available through paths and resources. Inline image content is capped at 6 MiB per response; additional images are returned as links. Frame requests have a two-minute deadline. Reduce frame count/subframes for heavy 3D scenes, particularly when the client has a shorter timeout.
+
+## Review the encoded video
+
+Both media tools accept **either** a completed `jobId` **or** `project` and `video`. The latter identifies an existing MP4 relative to the project's `out/` folder:
+
+```json
+{"project":"examples/motion-in-code","video":"motion-in-code-en.mp4","countFrames":true,"verifyDecode":true}
+```
+
+Paths cannot escape the project output folder, including through symlinks. The tools do not open arbitrary server files or remote media URLs. Encoded review does not require Chrome.
+
+`inspect_video` defaults to metadata inspection. `video.frames` includes `frameCountSource`: `container`, `decoded` or `unavailable`. Set `countFrames: true` for a decoded frame count. `verifyDecode: true` runs FFmpeg through the selected video stream with error checking; it does not verify audible quality or audio synchronization. `hasAudio` and `audio` report encoded audio streams, not sound quality. `avgFrameRate` and `rFrameRate` are encoded metadata; they do not independently establish constant frame timing.
+
+`extract_video_frames` defaults to six evenly spaced playback times and a contact sheet. Supply up to twelve explicit `frames` (zero-based indices) or `times`, not both. Time requests select the first encoded frame at or after each requested time; results contain both `requestedTime` and the actual `time`. Near the exclusive end boundary, a request after the final encoded frame returns `FRAME_NOT_FOUND`; use the last frame index when known. Samples remain in request order, including duplicate requests. The source manifest identifies `kind: "encoded-video"`, the source file and its job ID when supplied.
+
+Stills preserve full resolution. Embedded previews fit within 1024 pixels; contact sheets use smaller tiles with separate full-size still resources. Only the contact sheet is embedded when `sheet: true`. Review outputs share the existing frame resource namespace and persist across reconnects. Failed extraction removes its unregistered output directory.
+
+One encoded review runs at a time; overlapping requests return `MEDIA_BUSY`. Each request has a two-minute deadline and honors MCP cancellation and server shutdown. Reduce sample count or omit decoding/counting for long videos. File inspection and sampled stills cannot establish smooth motion through playback.
 
 ## Results and artifacts
 

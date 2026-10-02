@@ -12,7 +12,7 @@ export class ArtifactStore {
     this.dir = scopedPath(root, 'out/.ona-motion/frames'); fs.mkdirSync(this.dir, { recursive: true });
   }
   saveFrames(id, result) {
-    const manifest = { id, project: result.project, frames: result.frames.map(({ frame, time, path: file }) => ({ frame, time, path: file })), ...(result.sheet ? { sheet: { path: result.sheet.path } } : {}) };
+    const manifest = { id, project: result.project, ...(result.source ? { source: result.source } : {}), frames: result.frames.map(({ frame, time, requestedTime, path: file }) => ({ frame, time, ...(requestedTime !== undefined ? { requestedTime } : {}), path: file })), ...(result.sheet ? { sheet: { path: result.sheet.path } } : {}) };
     writeJson(scopedPath(this.root, path.join(this.dir, `${validId(id)}.json`)), manifest);
     return manifest;
   }
@@ -31,6 +31,16 @@ export class ArtifactStore {
     if (job.status !== 'completed' || !job.result) throw new MotionError('ARTIFACT_NOT_READY', 'The video is available after the job completes.');
     const p = loadProject(this.root, job.project);
     return this.checkedFile(job.result.path, path.join(p.out, 'mcp', 'jobs', id));
+  }
+  videoTarget({ jobId, project, video }) {
+    if (jobId && project === undefined && video === undefined) {
+      const job = this.jobs.get(jobId);
+      return { project: job.project, path: this.video(jobId), jobId };
+    }
+    if (jobId || !project || !video || path.isAbsolute(video) || video.split(/[\\/]/).includes('..') || !video.toLowerCase().endsWith('.mp4')) throw new MotionError('INVALID_VIDEO_REFERENCE', 'Provide jobId alone, or project plus an MP4 path relative to its out/ folder.');
+    const p = loadProject(this.root, project), filename = this.checkedFile(path.join(p.out, video), p.out);
+    if (!fs.statSync(filename).isFile()) throw new MotionError('INVALID_VIDEO_REFERENCE', 'Choose a regular MP4 file in the project output folder.');
+    return { project: p.relative, path: filename };
   }
   checkedFile(filename, directory) {
     const candidate = scopedPath(this.root, filename), allowed = scopedPath(this.root, directory);

@@ -9,6 +9,7 @@ import { checkEnvironment, probe } from '../lib/environment.mjs';
 import { mediaTool } from '../lib/media-tools.mjs';
 import { renderFrames } from '../lib/render.mjs';
 import { MAX_SCENE_BYTES, readScene, updateScene, updateProject } from '../lib/authoring.mjs';
+import { inspectVideo, extractVideoFrames } from '../lib/video-review.mjs';
 import { SCENE_GUIDE } from './scene-guide.mjs';
 import { JobManager } from './jobs.mjs';
 import { ArtifactStore, MAX_INLINE_BYTES, link } from './artifacts.mjs';
@@ -24,6 +25,7 @@ const configSchema = {
   fonts: z.object({ css: z.array(z.string().max(1024)).max(32), preload: z.array(z.string().max(1024)).max(32) }).strict().optional(),
 };
 const revisionSchema = z.string().regex(/^[a-f0-9]{64}$/).describe('SHA-256 revision returned by read_scene or inspect_project.');
+const videoReference = { jobId: idSchema.optional(), project: projectSchema.optional(), video: z.string().min(1).max(1024).optional().describe('MP4 path relative to project out/. Provide project+video or jobId, not both.') };
 const outputSchema = {
   ok: z.boolean(), result: z.record(z.string(), z.unknown()).optional(),
   error: z.object({ code: z.string(), message: z.string(), details: z.record(z.string(), z.unknown()).optional() }).optional(),
@@ -36,6 +38,8 @@ Use render_frames to inspect a contact sheet or selected stills before exporting
 Audio generation is not available through MCP. Existing out/audio.wav is used automatically; otherwise exports are silent.
 render_video returns a durable job ID immediately; poll get_job until completed, failed or cancelled.
 Use cancel_job to stop a queued or running export. Use list_jobs to rediscover recent jobs after reconnecting.
+Use inspect_video on a completed job to measure encoded properties; optionally count frames and verify video decoding.
+Use extract_video_frames to inspect actual MP4 frames and transitions. Source previews alone do not verify the encoded output.
 Artifacts are local files and MCP resources. Large files can be opened using the returned local path.
 Only trusted local projects should be rendered: their scene code runs in the browser and may access the network.
 One server owns the configured workspace at a time. Jobs run sequentially; stopped jobs are not resumed automatically.`;
@@ -54,6 +58,34 @@ export function createMotionServer(workspace) {
     if ([...calls].some(call => call.rendering && sameProject(call)) || [...jobs.records.values()].some(job => !['completed', 'failed', 'cancelled'].includes(job.status) && sameProject(job))) {
       throw new MotionError('PROJECT_BUSY', 'This project is in use by a preview or video job. Wait for completion or cancel the export before editing.');
     }
+  }
+  function frameResult(id, rendered) {
+    const manifest = artifacts.saveFrames(id, rendered), content = [];
+    const entries = rendered.sheet ? [rendered.sheet, ...rendered.frames] : rendered.frames;
+    let inlineBytes = 0;
+    for (const entry of entries) {
+      const uri = `ona-motion://frames/${id}/${path.basename(entry.path)}`;
+      content.push(link(uri, entry.path, 'image/png'));
+      const imageBuffer = entry.previewBuffer ?? entry.buffer;
+      if ((!rendered.sheet || entry === rendered.sheet) && inlineBytes + Math.ceil(imageBuffer.length * 4 / 3) <= MAX_INLINE_BYTES) {
+        content.push({ type: 'image', data: imageBuffer.toString('base64'), mimeType: 'image/png' });
+        inlineBytes += Math.ceil(imageBuffer.length * 4 / 3);
+      }
+    }
+    return { result: { ...manifest, frames: manifest.frames.map(frame => ({ ...frame, uri: `ona-motion://frames/${id}/${path.basename(frame.path)}` })),
+      ...(manifest.sheet ? { sheet: { ...manifest.sheet, uri: `ona-motion://frames/${id}/sheet.png` } } : {}), inlineImages: content.filter(c => c.type === 'image').length }, content };
+  }
+  async function mediaCall(extra, handler) {
+    if ([...calls].some(call => call.media)) throw new MotionError('MEDIA_BUSY', 'Another encoded-video review is running. Wait for it or cancel that request.');
+    const controller = new AbortController(), abort = () => controller.abort();
+    let done, timedOut = false;
+    const call = { controller, media: true, finished: new Promise(resolve => { done = resolve; }) }; calls.add(call);
+    const timer = setTimeout(() => { timedOut = true; abort(); }, 120000); timer.unref();
+    extra.signal.addEventListener('abort', abort, { once: true });
+    if (extra.signal.aborted) abort();
+    try { return await handler(controller.signal); }
+    catch (error) { if (timedOut) throw new MotionError('TIMEOUT', 'Encoded-video review exceeded the two-minute deadline. Reduce samples or disable full decode/counting.'); throw error; }
+    finally { clearTimeout(timer); extra.signal.removeEventListener('abort', abort); calls.delete(call); done(); }
   }
   function tool(name, description, inputSchema, readOnlyHint, handler) {
     server.registerTool(name, { description, inputSchema: z.object(inputSchema).strict(), outputSchema,
@@ -118,23 +150,7 @@ export function createMotionServer(workspace) {
             void extra.sendNotification({ method: 'notifications/progress', params: { progressToken: extra._meta.progressToken, progress: completed, total } }).catch(() => {});
           }
         } });
-      const manifest = artifacts.saveFrames(id, rendered);
-      const content = [], entries = rendered.sheet ? [rendered.sheet, ...rendered.frames] : rendered.frames;
-      let inlineBytes = 0;
-      for (const entry of entries) {
-        const uri = `ona-motion://frames/${id}/${path.basename(entry.path)}`;
-        content.push(link(uri, entry.path, 'image/png'));
-        const imageBuffer = entry.previewBuffer ?? entry.buffer;
-        // With a sheet, embed that one overview; every full-size still remains available as a resource.
-        if ((!rendered.sheet || entry === rendered.sheet) && inlineBytes + Math.ceil(imageBuffer.length * 4 / 3) <= MAX_INLINE_BYTES) {
-          content.push({ type: 'image', data: imageBuffer.toString('base64'), mimeType: 'image/png' });
-          inlineBytes += Math.ceil(imageBuffer.length * 4 / 3);
-        }
-      }
-      const result = { ...manifest, frames: manifest.frames.map(frame => ({ ...frame, uri: `ona-motion://frames/${id}/${path.basename(frame.path)}` })),
-        ...(manifest.sheet ? { sheet: { ...manifest.sheet, uri: `ona-motion://frames/${id}/sheet.png` } } : {}),
-        inlineImages: content.filter(c => c.type === 'image').length };
-      return { result, content };
+      return frameResult(id, rendered);
     } catch (error) {
       if (timedOut) throw new MotionError('TIMEOUT', 'Frame rendering exceeded the two-minute deadline. Reduce frame count or subframes.');
       if (controller.signal.aborted) throw new MotionError('CANCELLED', 'Frame rendering was cancelled.');
@@ -148,10 +164,11 @@ export function createMotionServer(workspace) {
   }
   tool('render_video', 'Queue a video export and immediately return a durable job ID. Poll get_job for progress and output. Uses out/audio.wav if present; otherwise exports silently. One export runs at a time, with a 30-minute deadline.', {
     ...commonRender, crf: z.number().int().min(0).max(51).default(16),
-  }, false, async ({ project, ...options }) => {
+  }, false, async ({ project, ...options }, extra) => {
     const encoder = await probe(mediaTool(root, 'ffmpeg').command, ['-version']);
     if (!encoder.available) throw new MotionError('MISSING_FFMPEG', 'The server cannot run ffmpeg. Configure persistent encoder paths on the server and call check_environment.', { error: encoder.error });
     if (shuttingDown) throw new MotionError('SERVER_STOPPING', 'The server is shutting down.');
+    if (extra.signal.aborted) throw new MotionError('CANCELLED', 'Video submission was cancelled before creating a job.');
     return { result: jobs.submit(project, options) };
   });
   tool('get_job', 'Read current render state and frame progress. Completed jobs include a video resource and local file path. Terminal states: completed, failed, cancelled.', { jobId: idSchema }, true,
@@ -160,6 +177,22 @@ export function createMotionServer(workspace) {
     async ({ limit }) => ({ result: { jobs: jobs.list(limit) } }));
   tool('cancel_job', 'Cancel a queued or running video export. Running jobs report cancelling until renderer cleanup completes. Cancelling a terminal job preserves its state.', { jobId: idSchema }, false,
     async ({ jobId }) => ({ result: jobs.cancel(jobId) }));
+  tool('inspect_video', 'Measure an encoded MP4 from a completed job, or project+video relative to out/. Reports dimensions, duration, frame rates, frame count provenance and audio streams. Optional frame counting and full video-stream decode; does not assess motion or audible quality.', {
+    ...videoReference, countFrames: z.boolean().default(false), verifyDecode: z.boolean().default(false),
+  }, true, async (args, extra) => mediaCall(extra, async signal => {
+    const target = artifacts.videoTarget(args);
+    return { result: { ...target, ...await inspectVideo(root, target.path, { ...args, signal }) } };
+  }));
+  tool('extract_video_frames', 'Extract up to 12 actual encoded frames and an optional contact sheet from a completed job or project+video. Times select the first encoded frame at or after each requested playback time and return actual timestamps. No browser or source re-render needed.', {
+    ...videoReference, frames: z.array(z.number().int().nonnegative()).min(1).max(12).optional(), times: z.array(z.number().nonnegative()).min(1).max(12).optional(),
+    count: z.number().int().min(1).max(12).default(6), sheet: z.boolean().default(true),
+  }, false, async (args, extra) => mediaCall(extra, async signal => {
+    const target = artifacts.videoTarget(args), metadata = await inspectVideo(root, target.path, { signal });
+    const p = loadProject(root, target.project), id = randomUUID();
+    const outputDir = scopedPath(root, path.join(p.out, 'mcp', 'frames', id));
+    const extracted = await extractVideoFrames(root, target.path, metadata, { ...args, outputDir, signal });
+    return frameResult(id, { ...extracted, project: p.relative, source: { kind: 'encoded-video', ...target } });
+  }));
 
   server.registerResource('workflow', 'ona-motion://guide', { mimeType: 'text/plain', description: 'Project, inspection and rendering workflow.' },
     async uri => ({ contents: [{ uri: String(uri), mimeType: 'text/plain', text: GUIDE }] }));
