@@ -7,7 +7,7 @@
       "skillName": "ona-motion-consumer",
       "displayName": "ona-motion MCP Consumer",
       "projectName": "ona-motion",
-      "primarySpecialty": "Consume the ona-motion MCP interface to assess capabilities and coordinate project inspection, animation previews, and video delivery.",
+      "primarySpecialty": "Consume ona-motion MCP to author scenes with revision checks, inspect projects, preview animations and coordinate encoded-video delivery.",
       "specialtyTags": [
         "ona-motion",
         "mcp-consumer",
@@ -19,7 +19,8 @@
         "intents": [
           "consume-motion-mcp",
           "preview-animation",
-          "inspect-motion-project"
+          "inspect-motion-project",
+          "author-motion-scene"
         ],
         "domain": [
           "ona-motion",
@@ -32,7 +33,10 @@
           "motion graphics MCP",
           "animation preview",
           "check_environment",
-          "inspect_project"
+          "inspect_project",
+          "update_scene",
+          "read_scene",
+          "scene authoring"
         ],
         "requiredAny": [
           "ona-motion",
@@ -41,7 +45,8 @@
         "outputNeed": [
           "capability assessment",
           "animation preview",
-          "artifact references"
+          "artifact references",
+          "authored animation scene"
         ],
         "softNegativeExamples": [
           "Deploy my web service on Render hosting.",
@@ -49,7 +54,7 @@
         ]
       },
       "skillContext": {
-        "whenToUse": "Consume the ona-motion MCP interface to assess capabilities and coordinate project inspection, animation previews, and video delivery.",
+        "whenToUse": "Consume ona-motion MCP to author scenes with revision checks, inspect projects, preview animations and coordinate encoded-video delivery.",
         "examplePrompts": [
           "Use ona-motion MCP to preview an existing animation.",
           "Can the ona-motion server create my promotional video using only its advertised tools?"
@@ -65,19 +70,21 @@
           "kind": "repository",
           "assurance": "claimed",
           "locator": "skills/ona-motion-consumer/SKILL.md",
-          "version": "1.0.0"
+          "version": "1.1.0",
+          "sourceHash": "192de9b880c02f45b7b19255f98f33b6547e325b230e3cf113d07a3a60614a1c"
         },
         "responsibility": {
-          "summary": "Consume the ona-motion MCP interface to assess capabilities and coordinate project inspection, animation previews, and video delivery.",
+          "summary": "Consume ona-motion MCP to author scenes with revision checks, inspect projects, preview animations and coordinate encoded-video delivery.",
           "owns": [
             "MCP discovery and capability assessment",
-            "Consumer workflow coordination"
+            "Consumer workflow coordination",
+            "Revision-checked scene and configuration authoring"
           ],
           "excludes": [
             "Server implementation",
             "MCP client registration",
             "Repository editing",
-            "Unsupported scene authoring"
+            "Audio generation"
           ],
           "relationships": [
             {
@@ -171,7 +178,8 @@
           "kind": "repository",
           "assurance": "claimed",
           "locator": "skills/ona-motion-storyboard/SKILL.md",
-          "version": "1.0.0"
+          "version": "1.1.0",
+          "sourceHash": "459463ba94750d5db2c3ab4c6abd76bf8ff5e7c93bc5f15e1949cf87c7db27e6"
         },
         "responsibility": {
           "summary": "Turn an ona-motion animation brief into an approved concept and timed storyboard with exact copy, transitions, and sound cues.",
@@ -205,7 +213,7 @@
       "skillName": "ona-motion-visual-review",
       "displayName": "ona-motion Visual Review",
       "projectName": "ona-motion",
-      "primarySpecialty": "Review ona-motion animation contact sheets and selected stills, identifying timestamped readability, layout, transition, and brand-fidelity issues.",
+      "primarySpecialty": "Review ona-motion source previews and encoded-video frames for timestamped readability, layout, transition and brand-fidelity issues.",
       "specialtyTags": [
         "ona-motion",
         "mcp-consumer",
@@ -230,7 +238,9 @@
           "PNG animation preview",
           "text clipping",
           "render_frames",
-          "frame readability"
+          "frame readability",
+          "extract_video_frames",
+          "encoded frame review"
         ],
         "requiredAny": [
           "ona-motion",
@@ -247,7 +257,7 @@
         ]
       },
       "skillContext": {
-        "whenToUse": "Review ona-motion animation contact sheets and selected stills, identifying timestamped readability, layout, transition, and brand-fidelity issues.",
+        "whenToUse": "Review ona-motion source previews and encoded-video frames for timestamped readability, layout, transition and brand-fidelity issues.",
         "examplePrompts": [
           "Review the ona-motion contact sheet for clipped text and unreadable titles.",
           "Inspect selected frames of my ona-motion animation and suggest visual revisions."
@@ -263,14 +273,16 @@
           "kind": "repository",
           "assurance": "claimed",
           "locator": "skills/ona-motion-visual-review/SKILL.md",
-          "version": "1.0.0"
+          "version": "1.1.0",
+          "sourceHash": "d85d0a1f2d160148705f9c1e739aeaf80b58ceb5f5b3481e735a5082dfe38539"
         },
         "responsibility": {
-          "summary": "Review ona-motion animation contact sheets and selected stills, identifying timestamped readability, layout, transition, and brand-fidelity issues.",
+          "summary": "Review ona-motion source previews and encoded-video frames for timestamped readability, layout, transition and brand-fidelity issues.",
           "owns": [
             "Rendered-frame sampling",
             "Visual evidence inspection",
-            "Timestamped findings and revision comparison"
+            "Timestamped findings and revision comparison",
+            "Encoded-video frame sampling and inspection"
           ],
           "excludes": [
             "Scene editing",
@@ -364,7 +376,8 @@
           "kind": "repository",
           "assurance": "claimed",
           "locator": "skills/ona-motion-export/SKILL.md",
-          "version": "1.0.0"
+          "version": "1.1.0",
+          "sourceHash": "9e511441c37a054ed3160b7575c5abf3a56c18a83fdde3ca71d93b28ceb5c0f2"
         },
         "responsibility": {
           "summary": "Export an approved ona-motion animation through MCP, track durable video jobs, handle cancellation and reconnects, and deliver artifacts with measured versus unverified properties.",

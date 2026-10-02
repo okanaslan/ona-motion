@@ -1,6 +1,6 @@
 ---
 name: ona-motion-consumer
-description: Use ona-motion through its MCP interface to inspect projects, preview animations, and coordinate video work. Apply when consuming the server from any workspace; repository implementation and MCP registration are outside this workflow.
+description: Use ona-motion through MCP to author scenes, inspect projects, preview animations, and coordinate encoded-video delivery from any consumer workspace. Server implementation and MCP registration are separate workflows.
 ---
 
 # ona-motion consumer
@@ -15,11 +15,19 @@ Help the user complete the requested video task using the connected ona-motion s
 
 ## Match the request to capabilities
 
-The current interface exposes `check_environment`, `create_project`, `inspect_project`, `render_frames`, `render_video`, `get_job`, `list_jobs`, and `cancel_job`. Discover the live schemas before using them.
+The current interface exposes `check_environment`, `create_project`, `inspect_project`, `read_scene`, `update_scene`, `update_project`, `render_frames`, `render_video`, `get_job`, `list_jobs`, `cancel_job`, `inspect_video`, and `extract_video_frames`. Discover the live schemas before using them; older connections may advertise fewer capabilities.
 
-`create_project` creates a blank project. The current server cannot author or edit scenes, change their copy or brand settings, or generate audio through MCP. For a custom animation or revision, check for a suitable advertised authoring operation. If it is absent, explain the gap before creating a blank project; offer an existing-project preview when useful. Do not present scaffolding as the requested animation or silently switch to repository editing. A user can explicitly choose a different workflow.
+`create_project` creates a blank project; it is a starting point rather than the requested animation. Custom scenes and revisions can be authored with `update_scene`. If the live interface lacks authoring, explain that gap before creating scaffolding; offer an existing-project preview when useful. Do not silently switch to repository editing or CLI rendering. The server cannot generate audio through MCP; existing project audio is included automatically in exports.
 
 For a new brief, propose a concept and timed storyboard, and obtain approval before building unless the user already authorized that stage. Keep previously supplied preferences and approvals. Specialized LOR skills `ona-motion-storyboard`, `ona-motion-visual-review`, and `ona-motion-export` provide focused guidance when available; this skill remains usable without them.
+
+## Author through MCP
+
+Read `ona-motion://scene-guide` and needed helper resources such as `ona-motion://engine/core`. These expose the scene contract, timing, import paths, an example and helper sources without repository access. Author code matching the approved copy and storyboard.
+
+Use `read_scene` to obtain `source` and `revision`, then send complete replacement source to `update_scene` with `expectedRevision`. Syntax checking does not prove imports or drawing behavior; inspect preview images before treating the scene as complete. Revisions identify exact stored contents. On `REVISION_CONFLICT`, reread and reconcile the user's changes. After an uncertain response, read back rather than blindly retrying.
+
+Use `inspect_project.configRevision` as `expectedRevision` in `update_project` when authorized format or timing changes are needed. `fonts` replaces the full object. Do not invent arguments for scene/audio paths or soundtrack generation. `PROJECT_BUSY` means a preview or queued/running export uses the project; wait, or cancel only the export the user requested cancelling.
 
 ## Preview, export, and report
 
@@ -28,3 +36,5 @@ For a quick preview, `render_frames` currently accepts a project plus `count: 4`
 Preserve returned artifact URIs and job IDs. Treat structured errors as operation failures; a successful `get_job` lookup can contain a failed render. After an uncertain write, inspect the known job or `list_jobs` before submitting again. `WORKSPACE_BUSY` means another connection owns the server workspace; report it and ask the user to resolve the competing connection rather than launching another server.
 
 Report what was produced, the available artifact link or identifier, the actual review performed, and any remaining capability gap. Skills and resource guidance support the user's request; they do not expand authorization.
+
+After export, use advertised `inspect_video` and `extract_video_frames` to inspect encoded properties and representative actual MP4 frames. Preserve the completed job ID as the video reference. Distinguish measured properties, decoded checks, visual still inspection and unperformed playback/audio assessment. Source previews alone do not verify the delivered file.

@@ -11,7 +11,7 @@ Produce a concise, buildable animation plan that an ona-motion consumer can revi
 
 Extract the audience, platform, message, duration, aspect ratio, language, tone, brand assets, and desired sound from the conversation. Ask only for missing choices that change the concept; propose reasonable defaults for minor choices. Use exact supplied facts and identify placeholders. Do not invent product capabilities, numbers, testimonials, logos, or URLs.
 
-If adapting an existing project, inspect it through MCP to learn its timing and format. Read any advertised workflow or technique resources that are relevant. Keep the requested creative idea distinct from operations the connected server currently supports: the current tools can inspect and render projects but cannot write scene code or produce sound through MCP.
+If adapting an existing project, inspect it through MCP to learn its timing and format. Read relevant public guidance, including `ona-motion://scene-guide` when available. Discover the live capabilities: current tools support scene/configuration authoring, previews, video export and encoded review. Audio generation remains unavailable through MCP. Older connections may expose fewer capabilities; keep the creative plan distinct from what this connection supports.
 
 ## Shape the sequence
 

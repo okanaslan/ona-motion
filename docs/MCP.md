@@ -67,9 +67,9 @@ Four global LOR skills guide agents consuming the public MCP interface:
 
 | Skill | Purpose |
 |---|---|
-| `ona-motion-consumer` | Discover capabilities, check readiness, inspect projects, and coordinate the requested workflow |
+| `ona-motion-consumer` | Discover capabilities, author scenes with revision checks, preview and coordinate delivery |
 | `ona-motion-storyboard` | Turn a brief into a timed storyboard with exact copy for approval |
-| `ona-motion-visual-review` | Inspect contact sheets and selected stills; report issues with playback timestamps |
+| `ona-motion-visual-review` | Inspect source previews and encoded MP4 frames; report issues with actual sample timestamps |
 | `ona-motion-export` | Track export jobs, handle cancellation and reconnection, and deliver artifacts with accurate verification status |
 
 Use LOR's matching workflow with the consumer's current workspace, then load the relevant entry with `get_skill_detail`. Exact lookup uses the canonical name above and `scope: "global"`. Full instructions are stored in LOR; consumers do not need this checkout or an installed local skill to read them through LOR.
