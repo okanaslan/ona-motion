@@ -153,6 +153,26 @@ This version uses ordinary MCP tools for job submission, polling and cancellatio
 
 ## Prerequisites and overrides
 
+### Persistent encoder setup
+
+Administrators can copy existing FFmpeg and FFprobe executables into ignored workspace storage:
+
+```bash
+node ona-setup.mjs --ffmpeg /path/to/ffmpeg --ffprobe /path/to/ffprobe
+```
+
+The setup command validates both copied executables, then atomically publishes `.ona-motion.local.json`. Binaries live in `.ona-motion/bin/<installationId>/`; these machine-specific files are never committed. It does not download binaries. On Windows, keep any required adjacent DLLs available or use an external installation through the configuration below. Reinstalling preserves earlier installations for in-flight processes.
+
+Alternatively, create `.ona-motion.local.json` with absolute executable paths or paths relative to the workspace:
+
+```json
+{"ffmpeg":"/persistent/path/to/ffmpeg","ffprobe":"/persistent/path/to/ffprobe"}
+```
+
+Resolution order is `FFMPEG_PATH` / `FFPROBE_PATH`, workspace configuration, then PATH. CLI exports, MCP exports and media review use the same resolver. No temporary shell environment is needed. After a server code update, reconnect the MCP client to load new tools. Call `check_environment` to see executable paths, their resolution source and readiness; `render_video` rejects a missing encoder before submitting a job.
+
+`canRenderVideo` covers browser rendering and FFmpeg availability. `canInspectVideo` requires FFprobe; `canExtractVideoFrames` requires both media executables. These flags report prerequisite availability, not a completed render or successful media review.
+
 - Node 18+ and `npm install` in the checkout.
 - Chrome, Chromium, Edge, or Brave on macOS; browser paths for Windows/Linux follow the existing Chrome/Chromium/Edge discovery. Override with `CHROME_PATH`.
 - ffmpeg for MP4 export; ffprobe for checking encoded output. Overrides: `FFMPEG_PATH`, `FFPROBE_PATH`.

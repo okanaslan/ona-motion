@@ -12,6 +12,7 @@ node ona.mjs stills examples/<name> 1.5s,4s # full-size stills → out/stills/
 python examples/<name>/sound.py            # → out/audio.wav (prints LUFS / true peak)
 node ona.mjs render examples/<name> [--lang en]   # → out/<name>[-en].mp4
 node ona-mcp.mjs [--workspace /path/to/checkout] # local MCP server (stdio)
+node ona-setup.mjs --ffmpeg /path/to/ffmpeg --ffprobe /path/to/ffprobe # persistent local encoders
 npm test                                  # project, job and MCP contract checks
 ```
 

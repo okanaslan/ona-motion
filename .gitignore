@@ -1,4 +1,6 @@
 node_modules/
+.ona-motion/
+.ona-motion.local.json
 out/
 __pycache__/
 *.pyc

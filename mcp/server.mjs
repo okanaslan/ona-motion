@@ -5,7 +5,8 @@ import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mc
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod/v4';
 import { MotionError, createProject, inspectProject, loadProject, scopedPath, workspaceRoot } from '../lib/project.mjs';
-import { checkEnvironment } from '../lib/environment.mjs';
+import { checkEnvironment, probe } from '../lib/environment.mjs';
+import { mediaTool } from '../lib/media-tools.mjs';
 import { renderFrames } from '../lib/render.mjs';
 import { MAX_SCENE_BYTES, readScene, updateScene, updateProject } from '../lib/authoring.mjs';
 import { SCENE_GUIDE } from './scene-guide.mjs';
@@ -147,7 +148,12 @@ export function createMotionServer(workspace) {
   }
   tool('render_video', 'Queue a video export and immediately return a durable job ID. Poll get_job for progress and output. Uses out/audio.wav if present; otherwise exports silently. One export runs at a time, with a 30-minute deadline.', {
     ...commonRender, crf: z.number().int().min(0).max(51).default(16),
-  }, false, async ({ project, ...options }) => ({ result: jobs.submit(project, options) }));
+  }, false, async ({ project, ...options }) => {
+    const encoder = await probe(mediaTool(root, 'ffmpeg').command, ['-version']);
+    if (!encoder.available) throw new MotionError('MISSING_FFMPEG', 'The server cannot run ffmpeg. Configure persistent encoder paths on the server and call check_environment.', { error: encoder.error });
+    if (shuttingDown) throw new MotionError('SERVER_STOPPING', 'The server is shutting down.');
+    return { result: jobs.submit(project, options) };
+  });
   tool('get_job', 'Read current render state and frame progress. Completed jobs include a video resource and local file path. Terminal states: completed, failed, cancelled.', { jobId: idSchema }, true,
     async ({ jobId }) => jobResult(jobs.get(jobId)));
   tool('list_jobs', 'List the most recent render jobs in this workspace, including jobs recovered after a server restart. Returns up to 20 records.', { limit: z.number().int().min(1).max(20).default(10) }, true,
