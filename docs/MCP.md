@@ -76,7 +76,7 @@ Use LOR's matching workflow with the consumer's current workspace, then load the
 
 The skills discover live tool schemas and report missing capabilities. A consumer can plan, author scenes, inspect, preview and export through MCP. Audio generation remains outside the public interface.
 
-Maintainers can find versioned sources under [`skills/`](../skills/) and registration metadata in [`skills/lor-catalog.json`](../skills/lor-catalog.json). Populate each entry's `skillContext.usageNotes` from its source when registering, and review stored instructions when public capabilities change. Companion relationships can be added after all referenced entries exist.
+LOR is the source of truth for these skills. Retrieve and use the full instructions through LOR MCP. Maintain instructions and routing in the global catalog, using its revision-protected proposal and apply workflow, then read back the updated entry. Review stored instructions when public capabilities change. This repository does not maintain copies of consumer skills or registration catalogs.
 
 ## Tools
 

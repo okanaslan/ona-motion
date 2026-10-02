@@ -36,6 +36,7 @@ Requirements: Node 18+, Python 3.10+ with numpy and scipy, ffmpeg on PATH, and C
 - When retiming or restyling an existing example, look for what the change does not reach on its own: absolute seconds in `sound.py`, numbers quoted in copy (frame counts, durations, BPM labels), helper defaults such as `accent`. Render a sheet and read the end card. `examples/edit-demo` shows one such round with its real diff.
 - Never commit anything under `out/`, rendered media or `node_modules/`.
 - MCP setup and the first connected session are documented in `docs/MCP.md`. Launch `ona-mcp.mjs` directly from MCP clients so stdout contains only protocol messages.
+- Store ona-motion consumer skills in the global LOR catalog. Discover, load and maintain them through LOR MCP; do not keep duplicate skill files or registration catalogs in this repository.
 - Keep CLI and MCP operations in the shared `lib/` modules. MCP callers use project paths relative to the configured workspace; validate traversal and symlinks before reading or writing.
 - Video jobs have durable IDs and unique output directories. Preserve cancellation cleanup and terminal states; do not silently restart interrupted renders.
 
