@@ -1,0 +1,404 @@
+{
+  "description": "Global LOR registration metadata. Populate skillContext.usageNotes from each source SKILL.md when registering; pass the current workspace and a stable idempotency key.",
+  "skills": [
+    {
+      "source": "skills/ona-motion-consumer/SKILL.md",
+      "scope": "global",
+      "skillName": "ona-motion-consumer",
+      "displayName": "ona-motion MCP Consumer",
+      "projectName": "ona-motion",
+      "primarySpecialty": "Consume the ona-motion MCP interface to assess capabilities and coordinate project inspection, animation previews, and video delivery.",
+      "specialtyTags": [
+        "ona-motion",
+        "mcp-consumer",
+        "motion-graphics",
+        "consumer"
+      ],
+      "routing": {
+        "intentFamily": "consumer",
+        "intents": [
+          "consume-motion-mcp",
+          "preview-animation",
+          "inspect-motion-project"
+        ],
+        "domain": [
+          "ona-motion",
+          "motion-graphics",
+          "video-production",
+          "mcp-consumption"
+        ],
+        "positiveKeywords": [
+          "ona-motion",
+          "motion graphics MCP",
+          "animation preview",
+          "check_environment",
+          "inspect_project"
+        ],
+        "requiredAny": [
+          "ona-motion",
+          "motion graphics MCP"
+        ],
+        "outputNeed": [
+          "capability assessment",
+          "animation preview",
+          "artifact references"
+        ],
+        "softNegativeExamples": [
+          "Deploy my web service on Render hosting.",
+          "Repair Figma Auto Layout sizing."
+        ]
+      },
+      "skillContext": {
+        "whenToUse": "Consume the ona-motion MCP interface to assess capabilities and coordinate project inspection, animation previews, and video delivery.",
+        "examplePrompts": [
+          "Use ona-motion MCP to preview an existing animation.",
+          "Can the ona-motion server create my promotional video using only its advertised tools?"
+        ],
+        "constraints": [
+          "Use the public MCP interface; server repository access is not required.",
+          "Discover current schemas and report missing capabilities instead of inventing tools.",
+          "Preserve user intent and existing approvals."
+        ]
+      },
+      "governance": {
+        "provenance": {
+          "kind": "repository",
+          "assurance": "claimed",
+          "locator": "skills/ona-motion-consumer/SKILL.md",
+          "version": "1.0.0"
+        },
+        "responsibility": {
+          "summary": "Consume the ona-motion MCP interface to assess capabilities and coordinate project inspection, animation previews, and video delivery.",
+          "owns": [
+            "MCP discovery and capability assessment",
+            "Consumer workflow coordination"
+          ],
+          "excludes": [
+            "Server implementation",
+            "MCP client registration",
+            "Repository editing",
+            "Unsupported scene authoring"
+          ],
+          "relationships": [
+            {
+              "kind": "complements",
+              "target": {
+                "scope": "global",
+                "skillName": "ona-motion-storyboard"
+              },
+              "reason": "Provides a separate consumer stage when the user's request needs it."
+            },
+            {
+              "kind": "complements",
+              "target": {
+                "scope": "global",
+                "skillName": "ona-motion-visual-review"
+              },
+              "reason": "Provides a separate consumer stage when the user's request needs it."
+            },
+            {
+              "kind": "complements",
+              "target": {
+                "scope": "global",
+                "skillName": "ona-motion-export"
+              },
+              "reason": "Provides a separate consumer stage when the user's request needs it."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "source": "skills/ona-motion-storyboard/SKILL.md",
+      "scope": "global",
+      "skillName": "ona-motion-storyboard",
+      "displayName": "ona-motion Storyboard",
+      "projectName": "ona-motion",
+      "primarySpecialty": "Turn an ona-motion animation brief into an approved concept and timed storyboard with exact copy, transitions, and sound cues.",
+      "specialtyTags": [
+        "ona-motion",
+        "mcp-consumer",
+        "motion-graphics",
+        "storyboard"
+      ],
+      "routing": {
+        "intentFamily": "storyboard",
+        "intents": [
+          "storyboard-motion-video",
+          "plan-animation"
+        ],
+        "domain": [
+          "ona-motion",
+          "motion-graphics",
+          "video-production",
+          "mcp-consumption"
+        ],
+        "positiveKeywords": [
+          "ona-motion",
+          "animation storyboard",
+          "video brief",
+          "kinetic typography",
+          "motion concept"
+        ],
+        "requiredAny": [
+          "ona-motion",
+          "motion graphics MCP"
+        ],
+        "outputNeed": [
+          "timed storyboard",
+          "exact on-screen copy",
+          "concept for approval"
+        ],
+        "softNegativeExamples": [
+          "Deploy my web service on Render hosting.",
+          "Repair Figma Auto Layout sizing."
+        ]
+      },
+      "skillContext": {
+        "whenToUse": "Turn an ona-motion animation brief into an approved concept and timed storyboard with exact copy, transitions, and sound cues.",
+        "examplePrompts": [
+          "Plan a ten-second ona-motion teaser and show me the storyboard before building.",
+          "Storyboarding an ona-motion product animation: propose timings, transitions, and exact copy."
+        ],
+        "constraints": [
+          "Use the public MCP interface; server repository access is not required.",
+          "Discover current schemas and report missing capabilities instead of inventing tools.",
+          "Preserve user intent and existing approvals."
+        ]
+      },
+      "governance": {
+        "provenance": {
+          "kind": "repository",
+          "assurance": "claimed",
+          "locator": "skills/ona-motion-storyboard/SKILL.md",
+          "version": "1.0.0"
+        },
+        "responsibility": {
+          "summary": "Turn an ona-motion animation brief into an approved concept and timed storyboard with exact copy, transitions, and sound cues.",
+          "owns": [
+            "Brief interpretation",
+            "Concept and timed storyboard",
+            "Storyboard revisions"
+          ],
+          "excludes": [
+            "Project creation",
+            "Scene authoring",
+            "Frame review",
+            "Video export"
+          ],
+          "relationships": [
+            {
+              "kind": "complements",
+              "target": {
+                "scope": "global",
+                "skillName": "ona-motion-consumer"
+              },
+              "reason": "Provides a separate consumer stage when the user's request needs it."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "source": "skills/ona-motion-visual-review/SKILL.md",
+      "scope": "global",
+      "skillName": "ona-motion-visual-review",
+      "displayName": "ona-motion Visual Review",
+      "projectName": "ona-motion",
+      "primarySpecialty": "Review ona-motion animation contact sheets and selected stills, identifying timestamped readability, layout, transition, and brand-fidelity issues.",
+      "specialtyTags": [
+        "ona-motion",
+        "mcp-consumer",
+        "motion-graphics",
+        "visual-review"
+      ],
+      "routing": {
+        "intentFamily": "visual-review",
+        "intents": [
+          "review-animation-frames",
+          "review-motion-visuals"
+        ],
+        "domain": [
+          "ona-motion",
+          "motion-graphics",
+          "video-production",
+          "mcp-consumption"
+        ],
+        "positiveKeywords": [
+          "ona-motion",
+          "animation contact sheet",
+          "PNG animation preview",
+          "text clipping",
+          "render_frames",
+          "frame readability"
+        ],
+        "requiredAny": [
+          "ona-motion",
+          "motion graphics MCP"
+        ],
+        "outputNeed": [
+          "timestamped visual findings",
+          "reviewed frame references",
+          "revision suggestions"
+        ],
+        "softNegativeExamples": [
+          "Deploy my web service on Render hosting.",
+          "Repair Figma Auto Layout sizing."
+        ]
+      },
+      "skillContext": {
+        "whenToUse": "Review ona-motion animation contact sheets and selected stills, identifying timestamped readability, layout, transition, and brand-fidelity issues.",
+        "examplePrompts": [
+          "Review the ona-motion contact sheet for clipped text and unreadable titles.",
+          "Inspect selected frames of my ona-motion animation and suggest visual revisions."
+        ],
+        "constraints": [
+          "Use the public MCP interface; server repository access is not required.",
+          "Discover current schemas and report missing capabilities instead of inventing tools.",
+          "Preserve user intent and existing approvals."
+        ]
+      },
+      "governance": {
+        "provenance": {
+          "kind": "repository",
+          "assurance": "claimed",
+          "locator": "skills/ona-motion-visual-review/SKILL.md",
+          "version": "1.0.0"
+        },
+        "responsibility": {
+          "summary": "Review ona-motion animation contact sheets and selected stills, identifying timestamped readability, layout, transition, and brand-fidelity issues.",
+          "owns": [
+            "Rendered-frame sampling",
+            "Visual evidence inspection",
+            "Timestamped findings and revision comparison"
+          ],
+          "excludes": [
+            "Scene editing",
+            "Sound-quality verification",
+            "Encoded-video validation from source stills",
+            "Figma Auto Layout repair"
+          ],
+          "relationships": [
+            {
+              "kind": "complements",
+              "target": {
+                "scope": "global",
+                "skillName": "ona-motion-consumer"
+              },
+              "reason": "Provides a separate consumer stage when the user's request needs it."
+            },
+            {
+              "kind": "complements",
+              "target": {
+                "scope": "global",
+                "skillName": "ona-motion-export"
+              },
+              "reason": "Provides a separate consumer stage when the user's request needs it."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "source": "skills/ona-motion-export/SKILL.md",
+      "scope": "global",
+      "skillName": "ona-motion-export",
+      "displayName": "ona-motion Video Export",
+      "projectName": "ona-motion",
+      "primarySpecialty": "Export an approved ona-motion animation through MCP, track durable video jobs, handle cancellation and reconnects, and deliver artifacts with measured versus unverified properties.",
+      "specialtyTags": [
+        "ona-motion",
+        "mcp-consumer",
+        "motion-graphics",
+        "export"
+      ],
+      "routing": {
+        "intentFamily": "export",
+        "intents": [
+          "export-motion-video",
+          "track-video-export",
+          "cancel-motion-export"
+        ],
+        "domain": [
+          "ona-motion",
+          "motion-graphics",
+          "video-production",
+          "mcp-consumption"
+        ],
+        "positiveKeywords": [
+          "ona-motion",
+          "MP4 animation export",
+          "render_video",
+          "get_job",
+          "video job cancellation",
+          "render artifact"
+        ],
+        "requiredAny": [
+          "ona-motion",
+          "motion graphics MCP"
+        ],
+        "outputNeed": [
+          "completed video artifact",
+          "export job status",
+          "verification report"
+        ],
+        "softNegativeExamples": [
+          "Deploy my web service on Render hosting.",
+          "Repair Figma Auto Layout sizing."
+        ]
+      },
+      "skillContext": {
+        "whenToUse": "Export an approved ona-motion animation through MCP, track durable video jobs, handle cancellation and reconnects, and deliver artifacts with measured versus unverified properties.",
+        "examplePrompts": [
+          "Export the approved ona-motion animation as an MP4 and track its job.",
+          "Cancel my ona-motion video export and confirm that cleanup has finished."
+        ],
+        "constraints": [
+          "Use the public MCP interface; server repository access is not required.",
+          "Discover current schemas and report missing capabilities instead of inventing tools.",
+          "Preserve user intent and existing approvals."
+        ]
+      },
+      "governance": {
+        "provenance": {
+          "kind": "repository",
+          "assurance": "claimed",
+          "locator": "skills/ona-motion-export/SKILL.md",
+          "version": "1.0.0"
+        },
+        "responsibility": {
+          "summary": "Export an approved ona-motion animation through MCP, track durable video jobs, handle cancellation and reconnects, and deliver artifacts with measured versus unverified properties.",
+          "owns": [
+            "Export submission and tracking",
+            "Requested job cancellation",
+            "Artifact delivery and verification reporting"
+          ],
+          "excludes": [
+            "Scene authoring",
+            "Dependency installation",
+            "Render hosting deployments",
+            "Unperformed media validation"
+          ],
+          "relationships": [
+            {
+              "kind": "complements",
+              "target": {
+                "scope": "global",
+                "skillName": "ona-motion-consumer"
+              },
+              "reason": "Provides a separate consumer stage when the user's request needs it."
+            },
+            {
+              "kind": "complements",
+              "target": {
+                "scope": "global",
+                "skillName": "ona-motion-visual-review"
+              },
+              "reason": "Provides a separate consumer stage when the user's request needs it."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

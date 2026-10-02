@@ -50,6 +50,23 @@ Use an absolute Node executable path if the desktop client's PATH does not inclu
 
 A scene is authored in code. This version expects the connected coding agent to have local filesystem tools for editing scenes, configuration, and sound scripts. The server supplies project and rendering operations; it does not generate scene code or run Python sound scripts.
 
+## LOR consumer skills
+
+Four global LOR skills guide agents consuming the public MCP interface:
+
+| Skill | Purpose |
+|---|---|
+| `ona-motion-consumer` | Discover capabilities, check readiness, inspect projects, and coordinate the requested workflow |
+| `ona-motion-storyboard` | Turn a brief into a timed storyboard with exact copy for approval |
+| `ona-motion-visual-review` | Inspect contact sheets and selected stills; report issues with playback timestamps |
+| `ona-motion-export` | Track export jobs, handle cancellation and reconnection, and deliver artifacts with accurate verification status |
+
+Use LOR's matching workflow with the consumer's current workspace, then load the relevant entry with `get_skill_detail`. Exact lookup uses the canonical name above and `scope: "global"`. Full instructions are stored in LOR; consumers do not need this checkout or an installed local skill to read them through LOR.
+
+The skills discover live tool schemas and report missing capabilities. A consumer restricted to MCP can plan, inspect, preview, and export existing scenes. Custom scene creation and revisions require an advertised authoring capability, which this version does not provide.
+
+Maintainers can find versioned sources under [`skills/`](../skills/) and registration metadata in [`skills/lor-catalog.json`](../skills/lor-catalog.json). Populate each entry's `skillContext.usageNotes` from its source when registering, and review stored instructions when public capabilities change. Companion relationships can be added after all referenced entries exist.
+
 ## Tools
 
 | Tool | Inputs | Result |
