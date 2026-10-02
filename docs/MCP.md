@@ -44,11 +44,21 @@ Use an absolute Node executable path if the desktop client's PATH does not inclu
 1. Call `check_environment` with `{}`. It reports the configured workspace, browser, fonts, Node dependencies, ffmpeg, ffprobe, Python and Python audio libraries.
 2. Call `inspect_project` with `{"project":"examples/hello"}`.
 3. Call `render_frames` with `{"project":"examples/hello","count":4,"subframes":1}`. Inspect the returned contact sheet. The client must support image content to show the preview.
-4. Create a project with `create_project`, for example `{"name":"launch-teaser","duration":15,"width":1080,"height":1080}`. Edit `examples/launch-teaser/scene.js` using the client's filesystem tools, then render another contact sheet.
-5. For a soundtrack, run the project's `sound.py` locally. It creates `out/audio.wav`, which video exports use automatically. Missing audio produces a silent video.
+4. Read `ona-motion://scene-guide`, then create a project with `create_project`, for example `{"name":"launch-teaser","duration":15,"width":1080,"height":1080}`. Use `read_scene` and submit the approved scene source with `update_scene` and its returned revision, then render another contact sheet.
+5. Existing `out/audio.wav` is used automatically. MCP audio generation is not available; missing audio produces a silent video.
 6. With ffmpeg available, call `render_video` with `{"project":"examples/hello","subframes":1}`. Save the returned `result.id` and call `get_job` with `{"jobId":"<returned UUID>"}` until the job reaches a terminal state.
 
-A scene is authored in code. This version expects the connected coding agent to have local filesystem tools for editing scenes, configuration, and sound scripts. The server supplies project and rendering operations; it does not generate scene code or run Python sound scripts.
+A scene is authored in code supplied by the consumer. The MCP interface supports reading and updating scenes and project configuration; consumers do not need the server repository or local filesystem tools. It does not generate audio or run Python sound scripts.
+
+## Authoring through MCP
+
+Read `ona-motion://scene-guide` for the scene contract, timing semantics, example source and authoring sequence. Helper module sources are public resources at `ona-motion://engine/core`, `ona-motion://engine/fx` and `ona-motion://engine/recipes`.
+
+`read_scene` returns the current `source` and SHA-256 `revision`. Send the complete replacement module to `update_scene` with `expectedRevision`. Updates parse JavaScript without executing it, then atomically replace the source. This is syntax validation only: render previews to verify imports, runtime behavior and visuals. Source is limited to 256 KiB. Authoring files must remain inside their own project, including through symlinks.
+
+`inspect_project` returns `configRevision`. Use it as `expectedRevision` in `update_project` to change timing, size, subframes or fonts. The `fonts` object is replaced in full. Scene/audio paths and project identity cannot be changed through this tool.
+
+Stale revisions return `REVISION_CONFLICT`. Read the current file/config and reconcile changes before retrying. After an uncertain response, read back before resubmitting. Updates return the stored source/config and new revision. `PROJECT_BUSY` prevents edits while a frame request or queued/running video job uses that project.
 
 ## LOR consumer skills
 
@@ -63,7 +73,7 @@ Four global LOR skills guide agents consuming the public MCP interface:
 
 Use LOR's matching workflow with the consumer's current workspace, then load the relevant entry with `get_skill_detail`. Exact lookup uses the canonical name above and `scope: "global"`. Full instructions are stored in LOR; consumers do not need this checkout or an installed local skill to read them through LOR.
 
-The skills discover live tool schemas and report missing capabilities. A consumer restricted to MCP can plan, inspect, preview, and export existing scenes. Custom scene creation and revisions require an advertised authoring capability, which this version does not provide.
+The skills discover live tool schemas and report missing capabilities. A consumer can plan, author scenes, inspect, preview and export through MCP. Audio generation remains outside the public interface.
 
 Maintainers can find versioned sources under [`skills/`](../skills/) and registration metadata in [`skills/lor-catalog.json`](../skills/lor-catalog.json). Populate each entry's `skillContext.usageNotes` from its source when registering, and review stored instructions when public capabilities change. Companion relationships can be added after all referenced entries exist.
 
@@ -72,8 +82,11 @@ Maintainers can find versioned sources under [`skills/`](../skills/) and registr
 | Tool | Inputs | Result |
 |---|---|---|
 | `check_environment` | none | Dependency availability and frame/video readiness |
-| `create_project` | `name`, optional `width`, `height`, `fps`, `duration`, `bpm`, `speed` | New `examples/<name>` project; existing projects are never overwritten |
-| `inspect_project` | `project` | Config, frame count, playback/scene duration, font and soundtrack availability |
+| `create_project` | `name`, optional size, timing, `subframes`, `fonts` | New `examples/<name>` project; existing projects are never overwritten |
+| `inspect_project` | `project` | Config and `configRevision`, timing, font and soundtrack availability |
+| `read_scene` | `project` | Scene source and revision |
+| `update_scene` | `project`, `source`, `expectedRevision` | Stored source and new revision after syntax validation |
+| `update_project` | `project`, `config`, `expectedRevision` | Stored config and new revision |
 | `render_frames` | `project`, optional `frames` or `times`, `count`, `sheet`, `lang`, `subframes` | PNG previews, frame times, local paths and artifact resources |
 | `render_video` | `project`, optional `lang`, `subframes`, `crf` | Durable job ID and initial state |
 | `get_job` | `jobId` | State, progress, error or completed video artifact |
@@ -109,6 +122,8 @@ Malformed arguments are rejected by the MCP SDK's schema validation. `get_job` r
 Resources:
 
 - `ona-motion://guide`: compact workflow guidance.
+- `ona-motion://scene-guide`: authoring contract, timing and example source.
+- `ona-motion://engine/{module}`: helper sources (`core`, `fx`, `recipes`).
 - `ona-motion://frames/<renderId>/<filename>`: full PNG stills and contact sheets.
 - `ona-motion://jobs/<jobId>/video`: a completed MP4.
 
