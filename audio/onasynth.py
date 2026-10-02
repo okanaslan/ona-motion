@@ -1,4 +1,4 @@
-"""ftsynth — a tiny procedural sound-design kit for ft-motion.
+"""onasynth — a tiny procedural sound-design kit for ona-motion.
 
 Everything is synthesized with numpy/scipy: drums, bass, pads, plucks, bells, UI pops,
 noise whooshes and risers, a convolution reverb, kick sidechain and a soft-clip master.
@@ -8,7 +8,7 @@ plays at speed < 1 (stretched), Mix converts every start time and every timed du
 (whoosh, riser, pad, glide) so sound stays locked to picture; percussive one-shots keep
 their natural length.
 
-    from ftsynth import *
+    from onasynth import *
     m = Mix.from_project(__file__)          # reads project.json (duration, bpm, speed)
     m.drums(bar=1, kick=[0, 6, 10], snare=[8], hats=range(0, 16, 2))
     m.pad(m.at(1), chord('Em9'), dur=m.bar)

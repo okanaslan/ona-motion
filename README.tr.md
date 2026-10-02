@@ -1,4 +1,6 @@
-# ft-motion
+# ona-motion
+
+Serhat Demir'in [ft-motion](https://github.com/imserhatdemir/ft-motion) projesinden çatallanmıştır. Bu çalışma alanı `ona-motion` adını ve `ona.mjs` CLI dosyasını kullanır. Ses modülleri `audio/onasynth.py` ve `audio/onaextras.py` olarak adlandırılmıştır. Kayıtlı ekran görüntüleri özgün projenin markasını korur; yeni render'lar ona-motion adını kullanır.
 
 **Zamanın saf bir fonksiyonu olarak hareketli grafik.** Sahneleri düz Canvas 2D ile `draw(ctx, t)` olarak yazıyorsun. Headless Chrome'da gerçek hareket bulanıklığıyla render ediliyor, ffmpeg ile kodlanıyor ve aynı vuruş ızgarasında Python'la sentezlenen sesle eşleniyor. Timeline editörü, keyframe ya da eklenti yok. Bu yüzden kod ajanlarıyla çok iyi çalışıyor: videoyu tarif edersin, storyboard'u onaylarsın, mp4'ü alırsın.
 
@@ -10,8 +12,8 @@
 
 - **Deterministik.** Her kare yalnızca `t`'ye bağlı. Herhangi bir kareyi tek başına render edip inceleyebilir ve düzeltebilirsin.
 - **Gerçek hareket bulanıklığı.** Her çıktı karesi 180° obtüratörle 6 alt karenin ortalaması; sert kesmeler yine sert kalıyor.
-- **Görüntüye kilitli ses.** `audio/ftsynth.py` davulları, pad'leri, arayüz seslerini, whoosh'ları ve riser'ları aynı saatle üretiyor. Riser'lar tam patlama anına oturuyor, master -14 LUFS hedefliyor.
-- **Ajanlar için tasarlandı.** [`prompts/VIDEO_BRIEF.tr.md`](prompts/VIDEO_BRIEF.tr.md), brief'ten teslime kadar eksiksiz bir prompt: araştırma → konsept → vuruş ızgarasında storyboard → üretim → görsel QA → ses → render. [`CLAUDE.md`](CLAUDE.md) ajanlar için çalışma kurallarını içeriyor.
+- **Görüntüye kilitli ses.** `audio/onasynth.py` davulları, pad'leri, arayüz seslerini, whoosh'ları ve riser'ları aynı saatle üretiyor. Riser'lar tam patlama anına oturuyor, master -14 LUFS hedefliyor.
+- **Ajanlar için tasarlandı.** [`prompts/VIDEO_BRIEF.tr.md`](prompts/VIDEO_BRIEF.tr.md), brief'ten teslime kadar eksiksiz bir prompt: araştırma → konsept → vuruş ızgarasında storyboard → üretim → görsel QA → ses → render. [`AGENTS.md`](AGENTS.md) ajanlar için çalışma kurallarını içeriyor.
 
 ## Gereksinimler
 
@@ -26,17 +28,17 @@
 npm install
 pip install -r requirements.txt
 
-node ft.mjs preview examples/hello        # tarayıcıda canlı önizleme
-node ft.mjs sheet examples/hello 12       # kontak baskı → examples/hello/out/sheet.png
+node ona.mjs preview examples/hello        # tarayıcıda canlı önizleme
+node ona.mjs sheet examples/hello 12       # kontak baskı → examples/hello/out/sheet.png
 python examples/hello/sound.py            # ses → examples/hello/out/audio.wav
-node ft.mjs render examples/hello         # → examples/hello/out/hello.mp4
+node ona.mjs render examples/hello         # → examples/hello/out/hello.mp4
 ```
 
 Kendi projeni başlat:
 
 ```bash
-node ft.mjs new lansman-teaser
-node ft.mjs preview examples/lansman-teaser
+node ona.mjs new lansman-teaser
+node ona.mjs preview examples/lansman-teaser
 ```
 
 ## Bir ajanla video üret
@@ -49,11 +51,11 @@ node ft.mjs preview examples/lansman-teaser
 
 | Komut | Ne yapar |
 |---|---|
-| `node ft.mjs new <ad>` | `examples/<ad>` klasörünü oluşturur |
-| `node ft.mjs preview <proje>` | canlı oynatıcı: boşluk oynat/durdur, ←/→ kare, shift+←/→ saniye, `b` hareket bulanıklığı |
-| `node ft.mjs stills <proje> 0,90,2.5s` | istenen karelerde ya da saniyelerde tam boyutlu PNG |
-| `node ft.mjs sheet <proje> [n]` | eşit aralıklı `n` kareyi `out/sheet.png` dosyasında birleştirir |
-| `node ft.mjs render <proje>` | mp4 üretir (varsa `out/audio.wav` sesini ekler) |
+| `node ona.mjs new <ad>` | `examples/<ad>` klasörünü oluşturur |
+| `node ona.mjs preview <proje>` | canlı oynatıcı: boşluk oynat/durdur, ←/→ kare, shift+←/→ saniye, `b` hareket bulanıklığı |
+| `node ona.mjs stills <proje> 0,90,2.5s` | istenen karelerde ya da saniyelerde tam boyutlu PNG |
+| `node ona.mjs sheet <proje> [n]` | eşit aralıklı `n` kareyi `out/sheet.png` dosyasında birleştirir |
+| `node ona.mjs render <proje>` | mp4 üretir (varsa `out/audio.wav` sesini ekler) |
 
 Seçenekler: `--lang xx` (sahneye `api.lang` olarak geçer), `--sub N` (alt kare sayısı), `--crf N`, `--out ad.mp4`.
 
@@ -63,14 +65,14 @@ Seçenekler: `--lang xx` (sahneye `api.lang` olarak geçer), `--sub N` (alt kare
 
 **Markaya uyarlanabilir örnekler:** [`examples/chat-commerce`](examples/chat-commerce) (sohbetle alışveriş tanıtımı) ve [`examples/motion-principles`](examples/motion-principles) (kinetik manifesto) 20 saniyelik tanıtım filmleri; ft-studio'da şablon olarak da var. Markanın değiştireceği her şey `scene.js`'in başında: `COPY` sözlüğü (TR / EN, `--lang tr` ile seçilir) ve `BRAND` (üç renk, başlık fontu, isteğe bağlı logo dosyası). [`engine/brand.js`](engine/brand.js) bunlardan kontrastı garanti bir palet, her en-boy oranı için güvenli alan (9:16, 4:5 ya da 16:9 için `project.json`'da `width` / `height` değiştir) ve logo üretir; logo yoksa monogram çizer. İkisi de 15 sn'lik bir saatte kurgulandı ve `"speed": 0.75` ile oynar: `1` orijinal 15 sn tempo, `0.6` 25 sn; ses de buna uyar.
 
-**Vitrin reel'i:** [`examples/reel`](examples/reel), [`engine/fx.js`](engine/fx.js) ve [`engine/recipes.js`](engine/recipes.js) modüllerini çalıştıran 15 saniyelik, 128 BPM'lik bir reel: eğik / çubuk / daire geçişleri, glitch, kick'le vuran tünel, nokta küre, easing eğrisi anlatımı, dalgalanan nokta ızgarası, kinetik tipografi ve son olarak reel'in kendi kodunun yazılıp render edilmesi (önizlemenin içinde önizleme). Metinler `COPY` içinde (`--lang tr` / `--lang en`); ses ([`sound.py`](examples/reel/sound.py), [`audio/ftextras.py`](audio/ftextras.py)) her kamera vuruşunu yansıtır.
+**Vitrin reel'i:** [`examples/reel`](examples/reel), [`engine/fx.js`](engine/fx.js) ve [`engine/recipes.js`](engine/recipes.js) modüllerini çalıştıran 15 saniyelik, 128 BPM'lik bir reel: eğik / çubuk / daire geçişleri, glitch, kick'le vuran tünel, nokta küre, easing eğrisi anlatımı, dalgalanan nokta ızgarası, kinetik tipografi ve son olarak reel'in kendi kodunun yazılıp render edilmesi (önizlemenin içinde önizleme). Metinler `COPY` içinde (`--lang tr` / `--lang en`); ses ([`sound.py`](examples/reel/sound.py), [`audio/onaextras.py`](audio/onaextras.py)) her kamera vuruşunu yansıtır.
 
 **Sesin nasıl üretildiğini ve görüntünün tempoya nasıl kilitlendiğini** canlı demolarla [`docs/sound-and-tempo.html`](docs/sound-and-tempo.html) sayfası anlatır (varsayılan dil İngilizce, sağ üstten Türkçe'ye geçilir). Tarayıcıda aç: çalıp tempoyu değiştirebileceğin bir döngü, kaydırıcılı kick / hat / pluck / riser formülleri, üç mikser hamlesi (sidechain, yankı, tanh) ve reel'in gerçek vuruş listesi. Derleme gerektirmeyen tek bir statik dosya.
 
 ```bash
-node ft.mjs sheet examples/reel 16 --lang tr
+node ona.mjs sheet examples/reel 16 --lang tr
 python examples/reel/sound.py
-node ft.mjs render examples/reel --lang tr
+node ona.mjs render examples/reel --lang tr
 ```
 
 **Düzenleme isteği, gerçek diff ve sonuç:** Sahne kod olduğu için bir revizyon okunabilir bir diff'tir. [`examples/edit-demo`](examples/edit-demo) tek bir gerçek turu gösterir: *"Reel'i 150 BPM'e çıkar ve vurgu rengini mercandan elektrik mavisine çevir. Ses senkronda kalsın."* isteği, bunu karşılayan [taslak PR](https://github.com/imserhatdemir/ft-motion/pull/5) ([`case/change.patch`](examples/edit-demo/case/change.patch)) ve önce/sonra videoları yan yana. `project.json`'daki tek bir sayı hem görüntüyü hem sesi yeniden zamanladı. Diff'in geri kalanı bunun kendiliğinden yetişmediği yerler: eski renge düşen yedi yardımcı, sabit yazılmış `128 BPM` etiketi, "900 kare" diyen metinler ve mutlak bir saniyeye bağlı tek bir ses olayı. Kendi düzenlemen için [README](examples/edit-demo/README.md)'ye bak.

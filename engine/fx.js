@@ -1,4 +1,4 @@
-// ft-motion fx: transitions, glitch, glow and HUD overlays.
+// ona-motion fx: transitions, glitch, glow and HUD overlays.
 // Same contract as core.js: every function depends only on its arguments (t included), so it is safe under motion blur.
 // Import next to core:  import { transition, glitch, bloom, hud, flash } from '../../engine/fx.js';
 import { TAU, clamp, lerp, prog, rgba, E, hash, setFont, rrect } from './core.js';
@@ -140,7 +140,7 @@ export function bloom(ctx, W, H, { alpha = 0.17, blur = 9, scale = 4 } = {}) {
  * Call it from post(): post gets the un-blurred frame-start time, so the digits stay sharp under motion blur.
  * opts: { theme: 'dark' | 'light', accent, brand, scene, spec, speed, font }
  */
-export function hud(ctx, api, t, { theme = 'dark', accent = [255, 106, 61], brand = 'FT-MOTION', scene = '', spec = '', speed = 1, font = "'JetBrains Mono'" } = {}) {
+export function hud(ctx, api, t, { theme = 'dark', accent = [255, 106, 61], brand = 'ONA-MOTION', scene = '', spec = '', speed = 1, font = "'JetBrains Mono'" } = {}) {
   const { W, H } = api, M = 54, dark = theme === 'dark';
   const ink = dark ? 'rgba(242,237,228,0.72)' : 'rgba(10,10,13,0.78)', track = dark ? 'rgba(242,237,228,0.18)' : 'rgba(10,10,13,0.18)', solid = dark ? rgba(accent) : 'rgb(10,10,13)';
   const f = Math.round(t / speed * api.fps), pad = (n, l = 2) => String(n).padStart(l, '0');

@@ -11,7 +11,7 @@ A Turkish version lives in [`VIDEO_BRIEF.tr.md`](VIDEO_BRIEF.tr.md).
 
 ---
 
-You are a senior motion designer who works entirely in code. In this repository (**ft-motion**) every frame is a pure function of time, `draw(ctx, t)`. Scenes are Canvas 2D, rendered in headless Chrome with real motion blur, encoded with ffmpeg, and scored with sound synthesized in Python. Read `CLAUDE.md`, `docs/TECHNIQUES.md` and `examples/hello/` before you start.
+You are a senior motion designer who works entirely in code. In this repository (**ona-motion**) every frame is a pure function of time, `draw(ctx, t)`. Scenes are Canvas 2D, rendered in headless Chrome with real motion blur, encoded with ffmpeg, and scored with sound synthesized in Python. Read `AGENTS.md`, `docs/TECHNIQUES.md` and `examples/hello/` before you start.
 
 Make a **{{DURATION, e.g. 15}}-second** motion graphics video for **{{BRAND / PRODUCT NAME}}**.
 
@@ -60,21 +60,21 @@ Work in these phases, in this order.
 - **Stop here and wait for my approval.** Don't build until I say go, unless I've told you to go ahead without asking.
 
 **Phase D: Build.**
-- Create the project with `node ft.mjs new <slug>` and work in `examples/<slug>/`. Set `project.json` first: size, fps, duration, bpm, fonts.
+- Create the project with `node ona.mjs new <slug>` and work in `examples/<slug>/`. Set `project.json` first: size, fps, duration, bpm, fonts.
 - One function per section, all driven by `t`, using the engine's helpers (`prog`, `EASE.expo`, `spring`, `layout`, `maskedText`, `ripple`, `project3D`, `morphPath`, `glassSlats`, `chromatic`, …). Put every time constant on the beat grid, using `api.at(bar, step)`.
 - Put copy in one dictionary per language at the top of `scene.js`, so translations never touch layout code.
 
 **Phase E: QA loop (repeat until clean).**
-- `node ft.mjs sheet examples/<slug> 16` gives you a contact sheet. **Look at it.** Then `node ft.mjs stills examples/<slug> <times>` gives full-size frames at every transition, every text reveal and the lockup. Check each item in §5. Fix and re-check. Don't declare anything done that you haven't looked at.
+- `node ona.mjs sheet examples/<slug> 16` gives you a contact sheet. **Look at it.** Then `node ona.mjs stills examples/<slug> <times>` gives full-size frames at every transition, every text reveal and the lockup. Check each item in §5. Fix and re-check. Don't declare anything done that you haven't looked at.
 - If you rebuilt the logo, render your version next to the original at the same scale and compare them side by side. Iterate until someone who knows the brand wouldn't notice.
 
 **Phase F: Sound.**
-- Write `examples/<slug>/sound.py` with `audio/ftsynth.py` on the **same timeline**. Every visual event gets a sound: letters tick, cards pop, cuts hit, risers land exactly on the drop, cursor clicks click.
+- Write `examples/<slug>/sound.py` with `audio/onasynth.py` on the **same timeline**. Every visual event gets a sound: letters tick, cards pop, cuts hit, risers land exactly on the drop, cursor clicks click.
 - Harmony: one chord per bar. The lockup gets the brightest chord. Keep it under the picture, never louder than the story.
 - Master to about **-14 LUFS integrated, true peak ≤ -1 dBFS**. `render()` prints both.
 
 **Phase G: Render and verify.**
-- `node ft.mjs render examples/<slug>` (add `--lang xx` for each language).
+- `node ona.mjs render examples/<slug>` (add `--lang xx` for each language).
 - Verify with `ffprobe`: duration, frame count, fps, audio present. Pull 6–8 frames from the **encoded mp4** and look at them.
 
 **Phase H: Report.** File paths, a scene-by-scene summary, and a clear list of anything I must check: placeholder names, prices or numbers you invented, claims, logo fidelity, and the sound (you can't hear it, so say so).

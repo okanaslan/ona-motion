@@ -1,4 +1,4 @@
-// A new ft-motion project. draw(ctx, t, api) paints the whole frame at scene time t (seconds).
+// A new ona-motion project. draw(ctx, t, api) paints the whole frame at scene time t (seconds).
 // Rules: depend only on t · no Math.random/Date (use hash) · start sections on bar lines (api.at(bar)).
 import { TAU, prog, rgba, E, EASE, spring, setFont, vignette } from '../../engine/core.js';
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sound and Tempo Lab</title>
+<title>ona-motion · Sound and Tempo Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -105,7 +105,7 @@ pre { margin: 0; background: var(--panel2); border-radius: 10px; padding: 12px 1
 <main>
   <header class="sec">
     <div class="top">
-      <span class="eyebrow">ft-motion · examples/reel</span>
+      <span class="eyebrow">ona-motion · examples/reel</span>
       <div class="lang" role="group" aria-label="Language"><button id="l-en" type="button">EN</button><button id="l-tr" type="button">TR</button></div>
     </div>
     <h1 data-i="h1"></h1>
@@ -217,7 +217,7 @@ pre { margin: 0; background: var(--panel2); border-radius: 10px; padding: 12px 1
       <div class="lane2"><div class="step"><b>ffmpeg</b><span data-i="s9"></span></div></div>
     </div>
     <div class="links">
-      <a href="../audio/ftsynth.py">audio/ftsynth.py</a><a href="../audio/ftextras.py">audio/ftextras.py</a><a href="../examples/reel/sound.py">examples/reel/sound.py</a><a href="../examples/reel/scene.js">examples/reel/scene.js</a><a href="TECHNIQUES.md">docs/TECHNIQUES.md</a>
+      <a href="../audio/onasynth.py">audio/onasynth.py</a><a href="../audio/onaextras.py">audio/onaextras.py</a><a href="../examples/reel/sound.py">examples/reel/sound.py</a><a href="../examples/reel/scene.js">examples/reel/scene.js</a><a href="TECHNIQUES.md">docs/TECHNIQUES.md</a>
     </div>
   </section>
 </main>
@@ -243,7 +243,7 @@ const I = {
     nBeatL: 'beat = 60 / BPM =', nBarL: 'bar = 4 beats =', nStepL: 'step = beat / 4 =', unitS: 's',
     heroBeat: 'beat', heroStep: 'step', step: 'step',
     sndEye: 'How the sound is made', sndH: 'No recordings, no samples, only maths',
-    sndLead: 'Each sound is a few lines of formula: a wave, a decay curve, sometimes filtered noise. Move the sliders, watch the waveform change, press play. The snippets summarise the functions in <code>audio/ftsynth.py</code>.',
+    sndLead: 'Each sound is a few lines of formula: a wave, a decay curve, sometimes filtered noise. Move the sliders, watch the waveform change, press play. The snippets summarise the functions in <code>audio/onasynth.py</code>.',
     mixEye: 'Mixer', mixH: 'Three moves so the sounds don\'t crush each other',
     mixLead: 'Sounds that are fine alone turn muddy when stacked. <code>Mix.render()</code> does three things. Change the sliders while the loop plays and hear the difference.',
     duckL: 'Sidechain', revL: 'Reverb', driveL: 'Drive',
@@ -280,7 +280,7 @@ const I = {
     nBeatL: 'vuruş = 60 / BPM =', nBarL: 'ölçü = 4 vuruş =', nStepL: 'adım = vuruş / 4 =', unitS: 's',
     heroBeat: 'vuruş', heroStep: 'adım', step: 'adım',
     sndEye: 'Ses nasıl üretiliyor', sndH: 'Kayıt yok, örnek yok, sadece matematik',
-    sndLead: 'Her ses birkaç satırlık formül: bir dalga, bir sönüm eğrisi, bazen filtrelenmiş gürültü. Kaydırıcıları oynat, dalganın nasıl değiştiğini gör, çal. Kodlar <code>audio/ftsynth.py</code> içindeki fonksiyonların özeti.',
+    sndLead: 'Her ses birkaç satırlık formül: bir dalga, bir sönüm eğrisi, bazen filtrelenmiş gürültü. Kaydırıcıları oynat, dalganın nasıl değiştiğini gör, çal. Kodlar <code>audio/onasynth.py</code> içindeki fonksiyonların özeti.',
     mixEye: 'Mikser', mixH: 'Sesler birbirini ezmesin diye üç hamle',
     mixLead: 'Tek tek iyi duyulan sesler üst üste binince çamurlaşır. <code>Mix.render()</code> üç şey yapıyor. Döngü çalarken kaydırıcıları değiştir, farkı hemen duyarsın.',
     duckL: 'Sidechain', revL: 'Yankı (reverb)', driveL: 'Doygunluk (drive)',
@@ -309,7 +309,7 @@ const I = {
   },
 };
 let lang = 'en';
-try { const s = localStorage.getItem('ft-lang'); if (s === 'tr' || s === 'en') lang = s; } catch (e) { /* storage may be blocked */ }
+try { const s = localStorage.getItem('ona-motion-lang'); if (s === 'tr' || s === 'en') lang = s; } catch (e) { /* storage may be blocked */ }
 if (location.hash === '#tr') lang = 'tr'; else if (location.hash === '#en') lang = 'en';
 const T = k => I[lang][k] ?? I.en[k];
 const L2 = o => o[lang];
@@ -329,7 +329,7 @@ function fit(cv) {
 const mono = (ctx, px, w = 500) => (ctx.font = `${w} ${px}px 'JetBrains Mono', ui-monospace, Menlo, monospace`);
 const num = (v, d) => (lang === 'tr' ? v.toFixed(d).replace('.', ',') : v.toFixed(d));
 
-/* ───────── DSP: the same formulas as audio/ftsynth.py, in JavaScript */
+/* ───────── DSP: the same formulas as audio/onasynth.py, in JavaScript */
 let SR = 44100, seed = 1234567;
 const rand = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 function noise(n) { const x = new Float32Array(n); for (let i = 0; i < n; i++) x[i] = (rand() + rand() + rand() - 1.5) * 1.6; return x; }
@@ -613,7 +613,7 @@ function applyLang() {
   $('#l-en').setAttribute('aria-pressed', lang === 'en'); $('#l-tr').setAttribute('aria-pressed', lang === 'tr');
   buildCards(); labelCells(); setPlayLabel(); setLabLabel(); setMixLabels(); setBpm(state.bpm); syncScrub(); redrawStatic();
 }
-function setLang(l) { lang = l; try { localStorage.setItem('ft-lang', l); } catch (e) { /* ignore */ } applyLang(); }
+function setLang(l) { lang = l; try { localStorage.setItem('ona-motion-lang', l); } catch (e) { /* ignore */ } applyLang(); }
 $('#l-en').onclick = () => setLang('en'); $('#l-tr').onclick = () => setLang('tr');
 
 /* ───────── main loop + visibility */

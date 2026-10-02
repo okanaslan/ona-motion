@@ -1,4 +1,4 @@
-// ft-motion brand kit: what a "brandable" scene needs on top of core.js.
+// ona-motion brand kit: what a "brandable" scene needs on top of core.js.
 // A scene declares three colours, a display font, an optional logo and a copy dictionary; brandApi()
 // turns them into a palette with guaranteed contrast, a safe area for the canvas' aspect ratio,
 // text-fitting helpers and a logo asset (a monogram stands in when there is no logo file).

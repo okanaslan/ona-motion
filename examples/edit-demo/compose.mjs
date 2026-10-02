@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Lay the BEFORE and AFTER renders over the two slots of the edit-demo panel and mix their sound.
-//   node ft.mjs render examples/edit-demo            (panel: prompt, steps, diff, frames; needs out/audio.wav from sound.py)
+//   node ona.mjs render examples/edit-demo            (panel: prompt, steps, diff, frames; needs out/audio.wav from sound.py)
 //   node examples/edit-demo/compose.mjs --before before.mp4 --after after.mp4 [--out final.mp4]
 // Both videos are scaled to the slot and held on their first / last frame, so they can have different lengths and tempos.
 // The panel keeps its own UI sounds; the AFTER video's soundtrack is mixed in from `videoStart`.

@@ -1,16 +1,16 @@
-# ft-motion: notes for coding agents
+# ona-motion: notes for coding agents
 
 Motion graphics videos written as code. A **project** is a folder with `project.json`, `scene.js` and optionally `sound.py`. The output goes to `<project>/out/` (git-ignored).
 
 ## Commands
 
 ```bash
-node ft.mjs new <name>                     # scaffold examples/<name> from templates/blank
-node ft.mjs preview examples/<name>        # live player (space, ←/→, shift, b = motion blur)
-node ft.mjs sheet examples/<name> 16       # contact sheet → out/sheet.png   ← look at it
-node ft.mjs stills examples/<name> 1.5s,4s # full-size stills → out/stills/
+node ona.mjs new <name>                     # scaffold examples/<name> from templates/blank
+node ona.mjs preview examples/<name>        # live player (space, ←/→, shift, b = motion blur)
+node ona.mjs sheet examples/<name> 16       # contact sheet → out/sheet.png   ← look at it
+node ona.mjs stills examples/<name> 1.5s,4s # full-size stills → out/stills/
 python examples/<name>/sound.py            # → out/audio.wav (prints LUFS / true peak)
-node ft.mjs render examples/<name> [--lang en]   # → out/<name>[-en].mp4
+node ona.mjs render examples/<name> [--lang en]   # → out/<name>[-en].mp4
 ```
 
 Requirements: Node 18+, Python 3.10+ with numpy and scipy, ffmpeg on PATH, and Chrome, Chromium or Edge installed (or `CHROME_PATH`).
@@ -41,13 +41,13 @@ Requirements: Node 18+, Python 3.10+ with numpy and scipy, ffmpeg on PATH, and C
 - `engine/three.js`: three.js bridge (`createGL`, `toon`, `ink`, `Sweep`). 3D scenes build the world in `setup` and re-pose every object from `t` in `draw`; `three` and `three/addons/` resolve through the import map in `player.html`.
 - `engine/brand.js`: brand kit for brandable scenes (`brandApi`: palette from three colours with contrast-picked text, safe area per aspect ratio, `fit` / `fitLines`, logo or monogram, `samplePoints`, `drawAsset`).
 - `engine/player.html`: loads a project's fonts and scene; used by both preview and render.
-- `ft.mjs`: CLI (static server, headless Chrome, ffmpeg).
-- `audio/ftsynth.py`: synthesis, timeline mixer, reverb, sidechain, mastering.
-- `audio/ftextras.py`: `stamp`, `counter_ticks`, `echo`, `glitch_burst`, `tick`, `tom`.
+- `ona.mjs`: CLI (static server, headless Chrome, ffmpeg).
+- `audio/onasynth.py`: synthesis, timeline mixer, reverb, sidechain, mastering.
+- `audio/onaextras.py`: `stamp`, `counter_ticks`, `echo`, `glitch_burst`, `tick`, `tom`.
 - `examples/hello/`: reference scene using most techniques.
-- `examples/reel/`: 15 s, 128 BPM showcase of `fx.js` and `recipes.js` (wipes, glitch, tunnel, dot sphere, easing graph, typed code with a preview inside a preview), `sound.py` with `ftextras`; TR / EN.
+- `examples/reel/`: 15 s, 128 BPM showcase of `fx.js` and `recipes.js` (wipes, glitch, tunnel, dot sphere, easing graph, typed code with a preview inside a preview), `sound.py` with `onaextras`; TR / EN.
 - `examples/edit-demo/`: 30 s, 4:5 side-by-side of an edit request, its real `git diff` (`case/change.patch`) and the BEFORE / AFTER renders of `examples/reel`. `scene.js` draws the panel from `case/`, `compose.mjs` overlays the two videos, `sound.py` scores the panel.
 - `examples/cat-crossing/`: three.js cartoon short (cel shading, ink lines, character rig, traffic, shot list).
 - `examples/chat-commerce/`, `examples/motion-principles/`: brandable 20 s promos (ported from ft-studio templates): copy in `COPY`, brand in `BRAND`, layout against `brandApi().fmt.safe`, 15 s choreography played at `speed` 0.75.
 - `docs/TECHNIQUES.md`: recipes, with pointers into the example.
-- `docs/sound-and-tempo.html`: standalone interactive explainer (EN default, TR toggle) of how `ftsynth` builds each sound and how scenes lock to the beat grid. Copy lives in the `I` dictionary; the DSP mirrors `audio/ftsynth.py`, so change both together.
+- `docs/sound-and-tempo.html`: standalone interactive explainer (EN default, TR toggle) of how `onasynth` builds each sound and how scenes lock to the beat grid. Copy lives in the `I` dictionary; the DSP mirrors `audio/onasynth.py`, so change both together.

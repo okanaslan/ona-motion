@@ -4,6 +4,8 @@ Motion graphics as code means a revision is a diff you can read. This example sh
 
 ![Frames from the reel before and after the edit](../../docs/edit-demo-compare.jpg)
 
+The saved patch and comparison image document the original ft-motion PR. The panel's repository label and current CLI commands use ona-motion.
+
 ## The request
 
 > Speed the reel up to 150 BPM and change the accent colour from coral to electric blue. Keep the sound in sync.
@@ -53,14 +55,14 @@ The last two were found in review (looking at the frames and grepping `sound.py`
 git diff main -- examples/reel > examples/edit-demo/case/change.patch
 
 # 2. render BEFORE (on main) and AFTER (on your branch), with their own audio
-python examples/reel/sound.py && node ft.mjs render examples/reel --lang en     # copy out/reel-en.mp4 aside each time
+python examples/reel/sound.py && node ona.mjs render examples/reel --lang en     # copy out/reel-en.mp4 aside each time
 
 # 3. describe the case: prompt, steps, which hunks to show, labels, and when the videos start
 $EDITOR examples/edit-demo/case/meta.json
 
 # 4. panel + compose
 python examples/edit-demo/sound.py
-node ft.mjs render examples/edit-demo
+node ona.mjs render examples/edit-demo
 node examples/edit-demo/compose.mjs --before before.mp4 --after after.mp4
 ```
 

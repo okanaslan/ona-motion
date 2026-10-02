@@ -1,7 +1,7 @@
-"""ftextras: more sounds for ftsynth (kept separate so ftsynth.py stays small).
+"""onaextras: more sounds for onasynth (kept separate so onasynth.py stays small).
 
-    from ftsynth import *
-    from ftextras import *
+    from onasynth import *
+    from onaextras import *
 
     stamp(m, t, 110)                            # a text slam: pitched tom + short kick (ducks the pads)
     counter_ticks(m, t0, 0.85, 29)              # ticks that slow down like an expo-out counter
@@ -10,7 +10,7 @@
 """
 import numpy as np
 
-from ftsynth import SR, filt, kick, rng, tarr
+from onasynth import SR, filt, kick, rng, tarr
 
 
 def tom(freq=110, dec=0.13):

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// ft-motion CLI
-//   node ft.mjs new <name>                         scaffold examples/<name> from templates/blank
-//   node ft.mjs preview <project>                  live player in your browser (space, ←/→, b)
-//   node ft.mjs stills <project> <f,f,f|t1s,t2s>   PNG stills at frames (or seconds with an "s" suffix)
-//   node ft.mjs sheet <project> [count]            evenly spaced stills tiled into out/sheet.png
-//   node ft.mjs render <project>                   out/<name>.mp4 (muxes out/audio.wav if present)
+// ona-motion CLI
+//   node ona.mjs new <name>                         scaffold examples/<name> from templates/blank
+//   node ona.mjs preview <project>                  live player in your browser (space, ←/→, b)
+//   node ona.mjs stills <project> <f,f,f|t1s,t2s>   PNG stills at frames (or seconds with an "s" suffix)
+//   node ona.mjs sheet <project> [count]            evenly spaced stills tiled into out/sheet.png
+//   node ona.mjs render <project>                   out/<name>.mp4 (muxes out/audio.wav if present)
 // options: --lang xx  --sub N (motion-blur subframes)  --crf N  --out file.mp4
 import http from 'node:http';
 import fs from 'node:fs';
@@ -22,17 +22,17 @@ const die = msg => { console.error(`\n  ✖ ${msg}\n`); process.exit(1); };
 if (!cmd || cmd === 'help' || cmd === '--help') { console.log(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 9).map(l => l.replace(/^\/\/ ?/, '')).join('\n')); process.exit(0); }
 
 if (cmd === 'new') {
-  if (!target) die('usage: node ft.mjs new <name>');
+  if (!target) die('usage: node ona.mjs new <name>');
   const dst = path.join(ROOT, 'examples', target);
   if (fs.existsSync(dst)) die(`${path.relative(ROOT, dst)} already exists`);
   fs.cpSync(path.join(ROOT, 'templates', 'blank'), dst, { recursive: true });
   const pj = path.join(dst, 'project.json');
   fs.writeFileSync(pj, fs.readFileSync(pj, 'utf8').replace('"blank"', JSON.stringify(target)));
-  console.log(`created examples/${target} — next: node ft.mjs preview examples/${target}`);
+  console.log(`created examples/${target} — next: node ona.mjs preview examples/${target}`);
   process.exit(0);
 }
 
-if (!target) die(`usage: node ft.mjs ${cmd} <project-folder>`);
+if (!target) die(`usage: node ona.mjs ${cmd} <project-folder>`);
 const PROJ = path.resolve(ROOT, target);
 const rel = path.relative(ROOT, PROJ).split(path.sep).join('/');
 if (rel.startsWith('..')) die('the project folder must live inside this repository');
@@ -56,7 +56,7 @@ const pageUrl = (extra = '') => `http://127.0.0.1:${port}/engine/player.html?pro
 if (cmd === 'preview') {
   console.log(`\n  ▶ ${pageUrl()}\n    space play/pause · ←/→ frame · shift+←/→ second · b motion blur · &t=3.5 to freeze\n    (edit scene.js and reload — Ctrl+C to stop)\n`);
   const opener = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', pageUrl()]] : process.platform === 'darwin' ? ['open', [pageUrl()]] : ['xdg-open', [pageUrl()]];
-  if (!process.env.FT_NO_OPEN) spawn(opener[0], opener[1], { stdio: 'ignore', detached: true }).on('error', () => {});
+  if (!process.env.ONA_NO_OPEN) spawn(opener[0], opener[1], { stdio: 'ignore', detached: true }).on('error', () => {});
 } else {
   await headless();
 }
@@ -85,7 +85,7 @@ async function headless() {
       frames = Array.from({ length: n }, (_, i) => Math.min(FRAMES - 1, Math.round(((i + 0.5) / n) * FRAMES)));
     } else {
       const list = rest.find(a => !a.startsWith('--') && a !== opt('lang') && a !== opt('sub'));
-      if (!list) die('usage: node ft.mjs stills <project> 0,90,180  (or 1.5s,4s)');
+      if (!list) die('usage: node ona.mjs stills <project> 0,90,180  (or 1.5s,4s)');
       frames = list.split(',').map(s => (s.endsWith('s') ? Math.round(parseFloat(s) * FPS) : Number(s)));
     }
     const dir = path.join(OUT, 'stills');
@@ -100,7 +100,7 @@ async function headless() {
     }
     if (cmd === 'sheet' || rest.includes('--sheet')) {
       const cols = Math.min(files.length, cfg.width >= cfg.height ? 4 : 6), rows = Math.ceil(files.length / cols);
-      const seq = fs.mkdtempSync(path.join(os.tmpdir(), 'ft-'));
+      const seq = fs.mkdtempSync(path.join(os.tmpdir(), 'ona-motion-'));
       files.forEach((f, i) => fs.copyFileSync(f, path.join(seq, `${String(i).padStart(3, '0')}.png`)));
       const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', '1', '-i', path.join(seq, '%03d.png'), '-vf', `scale=${Math.round(1600 / cols)}:-1,tile=${cols}x${rows}:padding=6:color=0x444444`, '-frames:v', '1', path.join(OUT, 'sheet.png')], { stdio: 'inherit' });
       fs.rmSync(seq, { recursive: true, force: true });

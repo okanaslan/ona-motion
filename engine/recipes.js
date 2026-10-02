@@ -1,4 +1,4 @@
-// ft-motion recipes: whole visual ideas as functions, built on core.js helpers.
+// ona-motion recipes: whole visual ideas as functions, built on core.js helpers.
 // Each one paints into the current transform and depends only on its arguments.
 import { TAU, clamp, lerp, rgba, mix, E, EASE, cubicBezier, project3D, grid, ripple, rrect } from './core.js';
 

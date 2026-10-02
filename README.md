@@ -1,10 +1,12 @@
-# ft-motion
+# ona-motion
+
+Forked from [ft-motion](https://github.com/imserhatdemir/ft-motion) by Serhat Demir. This workspace uses the `ona-motion` name and `ona.mjs` CLI. The sound modules are `audio/onasynth.py` and `audio/onaextras.py`.
 
 **Motion graphics as a pure function of time.** You write scenes as `draw(ctx, t)` in plain Canvas 2D. They render in headless Chrome with real motion blur, get encoded with ffmpeg, and are scored with sound synthesized in Python on the same beat grid. There's no timeline editor, no keyframes and no plugins, which makes it a good fit for coding agents: describe the video, review the storyboard, get an mp4.
 
 ![Contact sheet of examples/hello](docs/preview.jpg)
 
-*Frames from [`examples/hello`](examples/hello): kinetic type → dot field → 3D landscape → shape morph → spring UI → glass end card.*
+*Original upstream frames from [`examples/hello`](examples/hello): kinetic type → dot field → 3D landscape → shape morph → spring UI → glass end card. Saved screenshots retain the upstream branding; new renders use ona-motion.*
 
 [Türkçe README](README.tr.md)
 
@@ -12,8 +14,8 @@
 
 - **Deterministic.** Every frame depends only on `t`, so any frame can be rendered, inspected and fixed in isolation.
 - **Real motion blur.** Each output frame averages 6 subframes across a 180° shutter, and hard cuts stay hard.
-- **Sound locked to picture.** `audio/ftsynth.py` builds drums, pads, UI foley, whooshes and risers from numpy on the same clock. Risers land exactly on the drop. Mastering targets -14 LUFS.
-- **Built for agents.** [`prompts/VIDEO_BRIEF.md`](prompts/VIDEO_BRIEF.md) is a complete brief-to-delivery prompt (research → concepts → beat-grid storyboard → build → visual QA → sound → render). [`CLAUDE.md`](CLAUDE.md) gives the house rules.
+- **Sound locked to picture.** `audio/onasynth.py` builds drums, pads, UI foley, whooshes and risers from numpy on the same clock. Risers land exactly on the drop. Mastering targets -14 LUFS.
+- **Built for agents.** [`prompts/VIDEO_BRIEF.md`](prompts/VIDEO_BRIEF.md) is a complete brief-to-delivery prompt (research → concepts → beat-grid storyboard → build → visual QA → sound → render). [`AGENTS.md`](AGENTS.md) gives the house rules.
 
 ## Requirements
 
@@ -28,17 +30,17 @@
 npm install
 pip install -r requirements.txt
 
-node ft.mjs preview examples/hello        # live preview in your browser
-node ft.mjs sheet examples/hello 12       # contact sheet → examples/hello/out/sheet.png
+node ona.mjs preview examples/hello        # live preview in your browser
+node ona.mjs sheet examples/hello 12       # contact sheet → examples/hello/out/sheet.png
 python examples/hello/sound.py            # soundtrack → examples/hello/out/audio.wav
-node ft.mjs render examples/hello         # → examples/hello/out/hello.mp4
+node ona.mjs render examples/hello         # → examples/hello/out/hello.mp4
 ```
 
 Start your own:
 
 ```bash
-node ft.mjs new launch-teaser             # copies templates/blank → examples/launch-teaser
-node ft.mjs preview examples/launch-teaser
+node ona.mjs new launch-teaser             # copies templates/blank → examples/launch-teaser
+node ona.mjs preview examples/launch-teaser
 ```
 
 ## Make a video with an agent
@@ -88,11 +90,11 @@ export default {
 
 | Command | What it does |
 |---|---|
-| `node ft.mjs new <name>` | scaffold `examples/<name>` |
-| `node ft.mjs preview <project>` | live player: space play/pause, ←/→ frame, shift+←/→ second, `b` motion blur, `&t=3.5` to freeze |
-| `node ft.mjs stills <project> 0,90,2.5s` | full-size PNGs at frames or seconds |
-| `node ft.mjs sheet <project> [n]` | `n` evenly spaced stills tiled into `out/sheet.png` |
-| `node ft.mjs render <project>` | mp4 (H.264, yuv420p, faststart; muxes `out/audio.wav` if present) |
+| `node ona.mjs new <name>` | scaffold `examples/<name>` |
+| `node ona.mjs preview <project>` | live player: space play/pause, ←/→ frame, shift+←/→ second, `b` motion blur, `&t=3.5` to freeze |
+| `node ona.mjs stills <project> 0,90,2.5s` | full-size PNGs at frames or seconds |
+| `node ona.mjs sheet <project> [n]` | `n` evenly spaced stills tiled into `out/sheet.png` |
+| `node ona.mjs render <project>` | mp4 (H.264, yuv420p, faststart; muxes `out/audio.wav` if present) |
 
 Options: `--lang xx` (passed to the scene as `api.lang`), `--sub N` (motion-blur subframes), `--crf N`, `--out name.mp4`.
 
@@ -105,9 +107,9 @@ engine/recipes.js     tunnel, dot sphere, easing graph, ripple dots
 engine/three.js       three.js bridge: offscreen WebGL, cel shading, ink outlines, sweep tubes
 engine/brand.js       brand kit: palette from 3 colours, safe areas, text fitting, logo / monogram
 engine/player.html    loads a project's fonts + scene (preview and render)
-ft.mjs                CLI: static server, headless Chrome, ffmpeg
-audio/ftsynth.py      synthesis, timeline mixer, reverb, sidechain, mastering
-audio/ftextras.py     stamp, counter ticks, echo, glitch burst
+ona.mjs               CLI: static server, headless Chrome, ffmpeg
+audio/onasynth.py      synthesis, timeline mixer, reverb, sidechain, mastering
+audio/onaextras.py     stamp, counter ticks, echo, glitch burst
 templates/blank/      starting point for `new`
 examples/hello/       reference scene + soundtrack
 examples/reel/        15 s showcase reel: wipes, glitch, tunnel, dot sphere, easing graph, typed code (TR / EN)
@@ -129,23 +131,25 @@ A scene can build a three.js world in `setup()` and pose it from `t` in `draw()`
 [`examples/chat-commerce`](examples/chat-commerce) and [`examples/motion-principles`](examples/motion-principles) are 20-second promos (also templates in ft-studio). Everything a brand changes sits at the top of `scene.js`: the `COPY` dictionary (TR / EN, pick with `--lang tr`) and `BRAND` (three colours, display font, optional logo file). [`engine/brand.js`](engine/brand.js) turns those into a palette with guaranteed contrast, a safe area for any aspect ratio (change `width` / `height` in `project.json` for 9:16, 4:5 or 16:9) and a logo, with a monogram when there is no file. Both are choreographed on a 15 s clock and play at `"speed": 0.75`; set `1` for the original 15 s tempo or `0.6` for 25 s, and the soundtrack follows.
 
 ```bash
-node ft.mjs sheet examples/chat-commerce 12 --lang tr
+node ona.mjs sheet examples/chat-commerce 12 --lang tr
 python examples/chat-commerce/sound.py
-node ft.mjs render examples/chat-commerce --lang tr
+node ona.mjs render examples/chat-commerce --lang tr
 ```
 
 ## Showcase reel
 
 ![Contact sheet of examples/reel](docs/reel-preview.jpg)
 
-[`examples/reel`](examples/reel) is a 15 s, 128 BPM reel that puts [`engine/fx.js`](engine/fx.js) and [`engine/recipes.js`](engine/recipes.js) to work: nine scenes with skew / bars / disc wipes, a glitch tear, a tunnel that punches on the kick, a dot sphere, an easing-curve explainer, a rippling dot grid, kinetic type, and finally the reel's own source typing itself, rendering, and playing in a preview inside the preview. Copy is in `COPY` (`--lang tr` / `--lang en`), and the sound track ([`sound.py`](examples/reel/sound.py), using [`audio/ftextras.py`](audio/ftextras.py)) mirrors every camera hit.
+*Original upstream contact sheet; new renders use ona-motion.*
+
+[`examples/reel`](examples/reel) is a 15 s, 128 BPM reel that puts [`engine/fx.js`](engine/fx.js) and [`engine/recipes.js`](engine/recipes.js) to work: nine scenes with skew / bars / disc wipes, a glitch tear, a tunnel that punches on the kick, a dot sphere, an easing-curve explainer, a rippling dot grid, kinetic type, and finally the reel's own source typing itself, rendering, and playing in a preview inside the preview. Copy is in `COPY` (`--lang tr` / `--lang en`), and the sound track ([`sound.py`](examples/reel/sound.py), using [`audio/onaextras.py`](audio/onaextras.py)) mirrors every camera hit.
 
 **How the sound is made and how the picture locks to the tempo** is explained with live demos in [`docs/sound-and-tempo.html`](docs/sound-and-tempo.html) (English, with a Turkish toggle). Open it in a browser: a loop you can play and re-tempo, the kick, hat, pluck and riser formulas with sliders, the three mixer moves (sidechain, reverb, tanh drive), and the reel's real hit list scrubbed against three motion recipes. It is a single static file that needs no build step.
 
 ```bash
-node ft.mjs sheet examples/reel 16 --lang en
+node ona.mjs sheet examples/reel 16 --lang en
 python examples/reel/sound.py
-node ft.mjs render examples/reel --lang en
+node ona.mjs render examples/reel --lang en
 ```
 
 ## An edit request, the real diff, and the result
@@ -154,7 +158,9 @@ Because a scene is code, a revision is a diff you can read. [`examples/edit-demo
 
 ![Frames from the reel before and after the edit](docs/edit-demo-compare.jpg)
 
-The 30 s side-by-side video is itself an ft-motion project (the panel is drawn from `case/`, and `compose.mjs` overlays the two renders). See its [README](examples/edit-demo/README.md) to make one for your own edit.
+*Historical upstream comparison. The saved patch and screenshots preserve the original case.*
+
+The 30 s side-by-side video is itself an ona-motion project (the panel is drawn from `case/`, and `compose.mjs` overlays the two renders). See its [README](examples/edit-demo/README.md) to make one for your own edit.
 
 ## Tips
 

@@ -1,4 +1,4 @@
-// ft-motion × three.js — 3D scenes that still obey the contract: draw(ctx, t) poses the world
+// ona-motion × three.js — 3D scenes that still obey the contract: draw(ctx, t) poses the world
 // from t, renders it with WebGL into an offscreen canvas and blits that onto the 2D frame, so
 // motion blur, post() and 2D overlays work exactly as in Canvas-only scenes.
 //

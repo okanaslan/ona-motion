@@ -124,7 +124,7 @@ function diffView(ctx, t) {
 }
 function renderView(ctx, t, tFrame) {
   const u = tFrame - TL.render0, span = TL.v0 - TL.render0, pr = E.inOutCubic(clamp(u / (span - 0.2))), frames = Math.round(META.after.seconds * 60);
-  T(ctx, '$ node ft.mjs render examples/reel --lang en', PX + 26, PY + 60, { f: MONO, w: 700, size: 24 });
+  T(ctx, '$ node ona.mjs render examples/reel --lang en', PX + 26, PY + 60, { f: MONO, w: 700, size: 24 });
   T(ctx, `▸ frame ${String(Math.round(frames * pr)).padStart(3, '0')} / ${frames}`, PX + 26, PY + 108, { f: MONO, size: 22, fill: DIM });
   ctx.fillStyle = 'rgba(242,237,228,0.14)'; rrect(ctx, PX + 26, PY + 132, PW - 52, 16, 8); ctx.fill();
   ctx.fillStyle = rgba(INK); if (pr > 0) { rrect(ctx, PX + 26, PY + 132, Math.max(16, (PW - 52) * pr), 16, 8); ctx.fill(); }

@@ -11,7 +11,7 @@ Bu şablonu, **bu reponun kök klasöründe** açılmış bir kod ajanıyla (Cla
 
 ---
 
-Kodla çalışan kıdemli bir hareketli grafik tasarımcısısın. Bu repoda (**ft-motion**) her kare zamanın saf bir fonksiyonu, `draw(ctx, t)`. Sahneler Canvas 2D ile yazılıyor, headless Chrome'da gerçek hareket bulanıklığıyla render ediliyor, ffmpeg ile kodlanıyor ve Python'da sentezlenen sesle eşleniyor. Başlamadan önce `CLAUDE.md`, `docs/TECHNIQUES.md` ve `examples/hello/` klasörünü oku.
+Kodla çalışan kıdemli bir hareketli grafik tasarımcısısın. Bu repoda (**ona-motion**) her kare zamanın saf bir fonksiyonu, `draw(ctx, t)`. Sahneler Canvas 2D ile yazılıyor, headless Chrome'da gerçek hareket bulanıklığıyla render ediliyor, ffmpeg ile kodlanıyor ve Python'da sentezlenen sesle eşleniyor. Başlamadan önce `AGENTS.md`, `docs/TECHNIQUES.md` ve `examples/hello/` klasörünü oku.
 
 **{{MARKA / ÜRÜN ADI}}** için **{{SÜRE, ör. 15}} saniyelik** bir hareketli grafik videosu hazırla.
 
@@ -60,21 +60,21 @@ Aşağıdaki aşamaları bu sırayla uygula.
 - **Burada dur ve onayımı bekle.** Ben "başla" demeden üretime geçme; sormadan devam etmeni söylediysem bu kural geçerli değil.
 
 **D aşaması: Üretim.**
-- Projeyi `node ft.mjs new <slug>` ile oluştur ve `examples/<slug>/` içinde çalış. İlk iş `project.json`'u ayarla: boyut, fps, süre, bpm, fontlar.
+- Projeyi `node ona.mjs new <slug>` ile oluştur ve `examples/<slug>/` içinde çalış. İlk iş `project.json`'u ayarla: boyut, fps, süre, bpm, fontlar.
 - Her bölüm için bir fonksiyon yaz, hepsi `t` ile sürülsün. Motorun yardımcılarını kullan (`prog`, `EASE.expo`, `spring`, `layout`, `maskedText`, `ripple`, `project3D`, `morphPath`, `glassSlats`, `chromatic`, …). Her zaman sabitini `api.at(bar, step)` ile vuruş ızgarasına oturt.
 - Metinleri `scene.js`'in başında dil başına tek bir sözlükte topla; çeviriler yerleşim koduna hiç dokunmasın.
 
 **E aşaması: QA döngüsü (temiz çıkana kadar tekrarla).**
-- `node ft.mjs sheet examples/<slug> 16` bir kontak baskı üretir; **ona bak**. Sonra her geçişte, her metin açılışında ve kapanış kartında `node ft.mjs stills examples/<slug> <zamanlar>` ile tam boyutlu kareler al. §5'teki her maddeyi kontrol et, düzelt, yeniden kontrol et. Bakmadığın hiçbir şey için "bitti" deme.
+- `node ona.mjs sheet examples/<slug> 16` bir kontak baskı üretir; **ona bak**. Sonra her geçişte, her metin açılışında ve kapanış kartında `node ona.mjs stills examples/<slug> <zamanlar>` ile tam boyutlu kareler al. §5'teki her maddeyi kontrol et, düzelt, yeniden kontrol et. Bakmadığın hiçbir şey için "bitti" deme.
 - Logoyu yeniden kurduysan, kendi versiyonunu orijinalle aynı ölçekte render edip yan yana karşılaştır. Markayı tanıyan biri farkı fark etmeyene kadar düzelt.
 
 **F aşaması: Ses.**
-- `examples/<slug>/sound.py`'yi `audio/ftsynth.py` ile **aynı zaman çizelgesinde** yaz. Her görsel olayın bir sesi olsun: harfler tıklasın, kartlar "pop"lasın, kesmeler vursun, riser'lar tam patlamaya otursun, imleç tıklamaları tıklasın.
+- `examples/<slug>/sound.py`'yi `audio/onasynth.py` ile **aynı zaman çizelgesinde** yaz. Her görsel olayın bir sesi olsun: harfler tıklasın, kartlar "pop"lasın, kesmeler vursun, riser'lar tam patlamaya otursun, imleç tıklamaları tıklasın.
 - Armoni: ölçü başına bir akor, kapanış kartına en parlak akor. Ses görüntünün altında kalsın, hikâyeden yüksek olmasın.
 - Master'ı yaklaşık **-14 LUFS entegre, true peak ≤ -1 dBFS** seviyesine getir. `render()` ikisini de yazdırır.
 
 **G aşaması: Render ve doğrulama.**
-- `node ft.mjs render examples/<slug>` (her dil için `--lang xx` ekle).
+- `node ona.mjs render examples/<slug>` (her dil için `--lang xx` ekle).
 - `ffprobe` ile süreyi, kare sayısını, fps'i ve sesin varlığını doğrula. **Kodlanmış mp4'ten** 6–8 kare çıkar ve onlara bak.
 
 **H aşaması: Rapor.** Dosya yolları, sahne sahne özet ve kontrol etmem gerekenlerin net bir listesi: uydurduğun yer tutucu isimler, fiyatlar ya da sayılar, iddialar, logo sadakati ve ses (duyamadığın için bunu açıkça belirt).

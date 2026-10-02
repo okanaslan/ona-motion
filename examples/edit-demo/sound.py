@@ -8,8 +8,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'audio'))
-from ftsynth import *   # noqa: E402,F403
-from ftextras import *  # noqa: E402,F403
+from onasynth import *   # noqa: E402,F403
+from onaextras import *  # noqa: E402,F403
 
 meta = json.loads((Path(__file__).resolve().parent / 'case' / 'meta.json').read_text(encoding='utf-8'))
 m = Mix.from_project(__file__)

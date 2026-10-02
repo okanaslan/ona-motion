@@ -1,15 +1,23 @@
 {
-  "name": "ft-motion",
+  "name": "ona-motion",
   "version": "0.1.0",
   "description": "Motion graphics as a pure function of time: Canvas 2D scenes, headless-Chrome rendering with motion blur, ffmpeg encoding and synthesized sound.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/okanaslan/ona-motion.git"
+  },
+  "homepage": "https://github.com/okanaslan/ona-motion#readme",
+  "bugs": {
+    "url": "https://github.com/okanaslan/ona-motion/issues"
+  },
   "scripts": {
-    "preview": "node ft.mjs preview",
-    "stills": "node ft.mjs stills",
-    "sheet": "node ft.mjs sheet",
-    "render": "node ft.mjs render",
-    "new": "node ft.mjs new"
+    "preview": "node ona.mjs preview",
+    "stills": "node ona.mjs stills",
+    "sheet": "node ona.mjs sheet",
+    "render": "node ona.mjs render",
+    "new": "node ona.mjs new"
   },
   "dependencies": {
     "@fontsource/archivo-black": "^5.3.0",

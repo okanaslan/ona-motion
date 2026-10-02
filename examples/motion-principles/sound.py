@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'audio'))
-from ftsynth import Mix, chord, midi, bell, blip, pluck, keyclick  # noqa: E402
+from onasynth import Mix, chord, midi, bell, blip, pluck, keyclick  # noqa: E402
 
 PROG = [('Dmin9', 2), ('Bbmaj7', 2), ('Gmin9', 2), ('Asus2', 2)]       # cinematic, one chord per bar
 SCALE = [62, 64, 65, 69, 72, 74, 76, 77, 81, 84]

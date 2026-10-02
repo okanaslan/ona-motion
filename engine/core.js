@@ -1,4 +1,4 @@
-// ft-motion core — every frame is a pure function of time.
+// ona-motion core — every frame is a pure function of time.
 // Scenes import what they need from here; boot() wires a scene to the page and the renderer.
 
 export const TAU = Math.PI * 2;

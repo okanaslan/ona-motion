@@ -219,7 +219,7 @@ function end(ctx, u, { W, H }) {
     ctx.save(); ctx.globalAlpha = prog(u, 0.1, 0.14);
     withScale(ctx, W / 2, 490, slam, () => {
       setFont(ctx, 700, 230, SANS, -10); ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-      chromatic(ctx, DARK, ca, (c, dx) => { ctx.fillStyle = rgba(c); ctx.fillText('ft-motion', W / 2 + dx, 560); }, { light: true });
+      chromatic(ctx, DARK, ca, (c, dx) => { ctx.fillStyle = rgba(c); ctx.fillText('ona-motion', W / 2 + dx, 560); }, { light: true });
     });
     ctx.restore();
   }
@@ -233,8 +233,8 @@ function end(ctx, u, { W, H }) {
     withScale(ctx, W / 2, 790, cs * (1 - 0.04 * click), () => {
       ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 10;
       pill(ctx, W / 2, 790, 540, 96); ctx.fillStyle = rgba(DARK); ctx.fill(); ctx.shadowColor = 'transparent';
-      setFont(ctx, 500, 32, MONO); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-      ctx.fillStyle = rgba(INK); ctx.fillText('node ft.mjs render', W / 2 - 230, 791);
+      setFont(ctx, 500, 30, MONO); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = rgba(INK); ctx.fillText('node ona.mjs render', W / 2 - 230, 791);
       ctx.fillStyle = rgba(ORANGE); ctx.beginPath(); ctx.arc(W / 2 + 222, 790, 32, 0, TAU); ctx.fill();
       arrow(ctx, W / 2 + 222 + 6 * EASE.css(prog(u, 1.25, 1.45)), 790, 11, DARK, 3.5);
     });

@@ -16,7 +16,7 @@ const COPY = {
     marquee: 'SADECE KOD · ',
     comment: '// hareket = zaman + matematik', rendering: n => `▸ ${n} / 900 kare çiziliyor`, previewTitle: 'önizleme · 60fps',
     lines: ['BU VİDEO', 'KODLA', 'YAZILDI.'],
-    endTop: 'KANITLADIM', endBig: 'MI', endSub: '15 sn · 900 kare · sadece kod', sign: 'ft-motion ile yapıldı',
+    endTop: 'KANITLADIM', endBig: 'MI', endSub: '15 sn · 900 kare · sadece kod', sign: 'ona-motion ile yapıldı',
   },
   en: {
     hook: ['HOW', 'GOOD', 'AM I'], hookSub: 'motion graphics, in 15 seconds.',
@@ -26,7 +26,7 @@ const COPY = {
     marquee: 'CODE ONLY · ',
     comment: '// motion = time + math', rendering: n => `▸ rendering ${n} / 900 frames`, previewTitle: 'preview · 60fps',
     lines: ['THIS VIDEO', 'WAS WRITTEN', 'IN CODE.'],
-    endTop: 'PROVED', endBig: 'IT', endSub: '15 s · 900 frames · code only', sign: 'made with ft-motion',
+    endTop: 'PROVED', endBig: 'IT', endSub: '15 s · 900 frames · code only', sign: 'made with ona-motion',
   },
 };
 
@@ -227,7 +227,7 @@ function sphere(ctx, W, H, t) {
   shockRing(ctx, 540, 555, t, at('sphere'), { life: 0.7, width: 70, radius: 1500, color: CORAL });
 }
 
-// ───────────── 8 · code: a real ft-motion scene types itself, renders, and previews inside itself
+// ───────────── 8 · code: a real ona-motion scene types itself, renders, and previews inside itself
 const CODE = [
   [['// motion = time + math', 'cm']],
   [['export default', 'kw'], [' {', 'p']],
@@ -251,7 +251,7 @@ function code(ctx, W, H, t, api, tFrame) {
     const tx = 64, ty = 650, tW = 520, tH = 250;
     ctx.save(); ctx.globalAlpha = tp; ctx.translate(0, 40 * (1 - tp));
     windowFrame(ctx, tx, ty, tW, tH, 'terminal');
-    T(ctx, '$ node ft.mjs render examples/reel', tx + 28, ty + 92, { size: 21, f: MONO, w: 700 });
+    T(ctx, '$ node ona.mjs render examples/reel', tx + 28, ty + 92, { size: 20, f: MONO, w: 700 });
     const pr = E.inOutCubic(prog(tFrame - at('code'), b(2.2), b(2.2) + 1.3)), fr = String(Math.round(900 * pr)).padStart(3, '0');
     T(ctx, TX.rendering(fr), tx + 28, ty + 134, { size: 22, f: MONO, w: 500, fill: [154, 154, 163] });
     ctx.fillStyle = 'rgba(242,237,228,0.14)'; rrect(ctx, tx + 28, ty + 158, tW - 56, 14, 7); ctx.fill();
@@ -372,7 +372,7 @@ export default {
   // post runs once per output frame on the blended image: crisp HUD, glow, aberration on the big hits, vignette
   post(ctx, t, api) {
     const { W, H } = api, name = sceneAt(t), light = name === 'rhythm' || name === 'type' || name === 'end';
-    hud(ctx, api, t, { theme: light ? 'light' : 'dark', brand: 'FT-MOTION · REEL', scene: 'SCENE 0' + (SCENES.findIndex(s => s[0] === name) + 1) + ' ' + name.toUpperCase(), spec: '1080×1080 · 60 FPS · 128 BPM' });
+    hud(ctx, api, t, { theme: light ? 'light' : 'dark', brand: 'ONA-MOTION · REEL', scene: 'SCENE 0' + (SCENES.findIndex(s => s[0] === name) + 1) + ' ' + name.toUpperCase(), spec: '1080×1080 · 60 FPS · 128 BPM' });
     bloom(ctx, W, H);
     aberrate(ctx, W, H, aberrationAt(t, HITS.filter(([n, s]) => BIG.includes(n) || s >= 0.95).map(([n, s]) => [b(n), s])));
     vignette(ctx, W, H, 0.45);

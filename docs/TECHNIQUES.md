@@ -10,7 +10,7 @@ Each recipe says what it's for, which helpers to use, and where it runs in [`exa
 
 **Stagger.** `start = t0 + i * 0.04` for letter *i*. Order it by position (left→right, centre→out using `p.d`), never randomly.
 
-**Speed.** `"speed": 0.75` in `project.json` plays the whole choreography at 75 %. A 15 s cut becomes 20 s without editing a single time constant. `ftsynth.Mix` reads the same value and keeps the sound locked to the picture.
+**Speed.** `"speed": 0.75` in `project.json` plays the whole choreography at 75 %. A 15 s cut becomes 20 s without editing a single time constant. `onasynth.Mix` reads the same value and keeps the sound locked to the picture.
 
 ## Easing vocabulary
 
@@ -99,7 +99,7 @@ Making the tool visible is a strong closing move: the video shows its own source
 - `windowFrame(ctx, x, y, w, h, title)` draws a soft-shadowed window with a title bar; draw content inside at `y + 46`.
 - `typeCode(ctx, x, y, lines, n)` types syntax-highlighted code (`[[text, role], …]` per line, roles `kw fn p v n str cm`) with line numbers and a caret. `n` is `(t - t0) * charsPerSecond`. `codeLength(lines)` gives the total for timing.
 - **A preview inside the preview:** clip to a window's content area, scale, and call another scene's draw function with a looping local time. Because scenes are pure functions of `t`, that is all it takes.
-- Show the pipeline: a terminal window with the real command (`node ft.mjs render …`) and a progress bar driven from `api.frameT`.
+- Show the pipeline: a terminal window with the real command (`node ona.mjs render …`) and a progress bar driven from `api.frameT`.
 - `fitFont(ctx, text, maxW, maxPx, weight, family, trackingEm)` returns the largest size that fits; use it in `setup()` so translated copy (EN/TR) never overflows.
 
 ## Logo fidelity
@@ -119,7 +119,7 @@ For character animation and real 3D sets. *cat-crossing: the whole scene*
 - **Cameras:** a list of shots `[endTime, t => [position, lookAt, fov]]`; cutting on a frame boundary keeps motion-blur cuts hard.
 - **Speed:** SwiftShader renders roughly 0.5–1 s per subframe at 1080p. Cull what's off screen (`visible = false`), keep sphere segments modest, and use 3 subframes instead of 6.
 
-## Sound (audio/ftsynth.py)
+## Sound (audio/onasynth.py)
 
 For a hands-on walkthrough (play each instrument, move its parameters, hear the sidechain and reverb, scrub the reel's hit list) open [`sound-and-tempo.html`](sound-and-tempo.html).
 
@@ -128,7 +128,7 @@ For a hands-on walkthrough (play each instrument, move its parameters, hear the 
 - Harmony: `m.pad(t, chord('Em9'), dur=m.bar)`, one chord per bar and the brightest on the lockup.
 - UI foley: `pop()`, `keyclick()` (`m.typing(t0, t1, chars)`), `mouseclick()`, `blip()`, `pluck()` (pitched per event, e.g. ascending per letter), `bell()`.
 - Movement: `m.whoosh(t, dur, f0, f1)` for passes, `m.riser(t0, t1)` and `m.suck(t0, t1)`, which end *exactly* on `t1`, `m.roll(t0, t1)`, `m.impact(t)`.
-- `audio/ftextras.py` adds `stamp(m, t, pitch)` (a text slam: pitched tom + short kick, so pads duck), `counter_ticks(m, t0, dur, n)` (ticks that slow like an expo-out counter), `echo(m, t, sig)` (ping-pong repeats through `m.add`), `glitch_burst()` and `tick()`, `tom()`. *reel/sound.py*
+- `audio/onaextras.py` adds `stamp(m, t, pitch)` (a text slam: pitched tom + short kick, so pads duck), `counter_ticks(m, t0, dur, n)` (ticks that slow like an expo-out counter), `echo(m, t, sig)` (ping-pong repeats through `m.add`), `glitch_burst()` and `tick()`, `tom()`. *reel/sound.py*
 - **Arrange by subtraction.** Drop the kick for the beat before a drop (and before the finale) so the next hit lands harder, and make the code section quieter than the drop so the stamped words cut through.
 - `m.render()` applies reverb, sidechain and soft-clip, writes `out/audio.wav`, and prints integrated LUFS and true peak (aim for about -14 LUFS and ≤ -1 dBFS).
 

@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'audio'))
-from ftsynth import Mix, chord, midi, bell, pop, mouseclick, snare  # noqa: E402
+from onasynth import Mix, chord, midi, bell, pop, mouseclick, snare  # noqa: E402
 
 PROG = [('Amaj9', 3), ('E6', 3), ('F#min9', 2), ('Dmaj9', 3)]        # bright, one chord per bar
 BASS = [33, 40, 42, 38]
