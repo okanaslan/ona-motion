@@ -1,0 +1,38 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { DEFAULT_WORKSPACE } from '../lib/project.mjs';
+
+test('stdio server discovers tools, validates inputs, serves resources and shuts down cleanly', async t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ona-motion-mcp-'));
+  fs.mkdirSync(path.join(root, 'engine')); fs.writeFileSync(path.join(root, 'engine/player.html'), '');
+  fs.mkdirSync(path.join(root, 'examples'));
+  fs.cpSync(path.join(DEFAULT_WORKSPACE, 'templates'), path.join(root, 'templates'), { recursive: true });
+  const transport = new StdioClientTransport({ command: process.execPath, args: [path.join(DEFAULT_WORKSPACE, 'ona-mcp.mjs'), '--workspace', root], stderr: 'pipe' });
+  let stderr = ''; transport.stderr?.on('data', data => { stderr += data; });
+  const client = new Client({ name: 'ona-motion-contract-check', version: '1.0.0' });
+  t.after(async () => { await client.close(); fs.rmSync(root, { recursive: true, force: true }); });
+  await client.connect(transport);
+  const tools = await client.listTools();
+  assert.deepEqual(tools.tools.map(tool => tool.name).sort(), ['cancel_job', 'check_environment', 'create_project', 'get_job', 'inspect_project', 'list_jobs', 'render_frames', 'render_video']);
+  const created = await client.callTool({ name: 'create_project', arguments: { name: 'demo', duration: 3 } });
+  assert.equal(created.structuredContent.ok, true); assert.equal(created.structuredContent.result.frames, 180);
+  const inspected = await client.callTool({ name: 'inspect_project', arguments: { project: 'examples/demo' } });
+  assert.equal(inspected.structuredContent.result.playbackDuration, 3);
+  const duplicate = await client.callTool({ name: 'create_project', arguments: { name: 'demo' } });
+  assert.equal(duplicate.isError, true); assert.equal(duplicate.structuredContent.error.code, 'PROJECT_EXISTS');
+  const escaped = await client.callTool({ name: 'inspect_project', arguments: { project: '../outside' } });
+  assert.equal(escaped.isError, true); assert.equal(escaped.structuredContent.error.code, 'PATH_OUTSIDE_WORKSPACE');
+  const invalid = await client.callTool({ name: 'render_frames', arguments: { project: 'examples/demo', count: 1000 } });
+  assert.equal(invalid.isError, true);
+  const resources = await client.listResources(); assert.equal(resources.resources[0].uri, 'ona-motion://guide');
+  const guide = await client.readResource({ uri: 'ona-motion://guide' }); assert.match(guide.contents[0].text, /render_frames/);
+  const recent = await client.callTool({ name: 'list_jobs', arguments: {} }); assert.deepEqual(recent.structuredContent.result.jobs, []);
+  await client.close();
+  assert.equal(fs.existsSync(path.join(root, 'out/.ona-motion/server.lock')), false);
+  assert.equal(stderr, '');
+});

@@ -36,6 +36,8 @@ test('workspace containment rejects traversal, prefix siblings and external syml
   assert.throws(() => scopedPath(root, root + '-sibling/file'), { code: 'PATH_OUTSIDE_WORKSPACE' });
   fs.symlinkSync(os.tmpdir(), path.join(root, 'external'));
   assert.throws(() => scopedPath(root, 'external/new-output/file.png'), { code: 'PATH_OUTSIDE_WORKSPACE' });
+  fs.symlinkSync(path.join(os.tmpdir(), 'ona-motion-missing-' + process.pid), path.join(root, 'dangling'));
+  assert.throws(() => scopedPath(root, 'dangling'), { code: 'PATH_OUTSIDE_WORKSPACE' });
 });
 
 test('inspection reports missing fonts and rejects escaping scene paths', t => {
