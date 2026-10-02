@@ -22,7 +22,7 @@ Forked from [ft-motion](https://github.com/imserhatdemir/ft-motion) by Serhat De
 - Node.js 18+
 - Python 3.10+ with `numpy` and `scipy` (`pip install -r requirements.txt`)
 - ffmpeg on your `PATH`
-- Google Chrome, Chromium or Microsoft Edge (auto-detected, or set `CHROME_PATH`)
+- Google Chrome, Chromium or Microsoft Edge; Brave is also auto-detected on macOS (or set `CHROME_PATH`)
 
 ## Quick start
 
@@ -48,6 +48,16 @@ node ona.mjs preview examples/launch-teaser
 1. Open this repo in Claude Code (or another coding agent).
 2. Paste [`prompts/VIDEO_BRIEF.md`](prompts/VIDEO_BRIEF.md) (Turkish: [`VIDEO_BRIEF.tr.md`](prompts/VIDEO_BRIEF.tr.md)), fill in the brief, and attach your logo, screenshots and website URL.
 3. Pick a concept and approve the storyboard. The agent builds, checks its own frames, scores the sound and renders.
+
+## MCP server
+
+Connect a local coding agent to the same project and rendering operations through MCP:
+
+```bash
+node /absolute/path/to/ona-motion/ona-mcp.mjs
+```
+
+The server provides environment checks, project creation/inspection, PNG previews, and video jobs with progress and cancellation. Start with `check_environment`, then `render_frames` for `examples/hello`. The agent edits scene code using its local filesystem tools. See [MCP setup and first session](docs/MCP.md) and the [client configuration example](mcp/client-config.example.json).
 
 ## A scene in 20 lines
 
@@ -107,7 +117,10 @@ engine/recipes.js     tunnel, dot sphere, easing graph, ripple dots
 engine/three.js       three.js bridge: offscreen WebGL, cel shading, ink outlines, sweep tubes
 engine/brand.js       brand kit: palette from 3 colours, safe areas, text fitting, logo / monogram
 engine/player.html    loads a project's fonts + scene (preview and render)
-ona.mjs               CLI: static server, headless Chrome, ffmpeg
+ona.mjs               CLI adapter for project and rendering operations
+ona-mcp.mjs           local MCP server entry point
+lib/                  shared project validation, environment checks and rendering
+mcp/                  MCP tools, durable jobs and artifact resources
 audio/onasynth.py      synthesis, timeline mixer, reverb, sidechain, mastering
 audio/onaextras.py     stamp, counter ticks, echo, glitch burst
 templates/blank/      starting point for `new`
@@ -118,6 +131,7 @@ examples/cat-crossing/ 3D cartoon short (three.js): a cat crossing a busy street
 examples/chat-commerce/ conversational-commerce promo: chat demo, manifesto, inbox, dots → logo, glass end card
 examples/motion-principles/ kinetic manifesto: code → dot landscape → timing, rhythm, contrast, squash, morph
 docs/TECHNIQUES.md    recipes: timing, type, dot fields, morphs, UI, glass, impacts, sound
+docs/MCP.md           MCP setup, tools, artifacts, job lifecycle and first session
 docs/sound-and-tempo.html  interactive explainer: how the sound is synthesised, how motion locks to the beat (EN / TR)
 prompts/              brief-to-video prompt templates (EN / TR)
 ```

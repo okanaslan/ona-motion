@@ -2,6 +2,8 @@
 
 Serhat Demir'in [ft-motion](https://github.com/imserhatdemir/ft-motion) projesinden çatallanmıştır. Bu çalışma alanı `ona-motion` adını ve `ona.mjs` CLI dosyasını kullanır. Ses modülleri `audio/onasynth.py` ve `audio/onaextras.py` olarak adlandırılmıştır. Kayıtlı ekran görüntüleri özgün projenin markasını korur; yeni render'lar ona-motion adını kullanır.
 
+**MCP sunucusu:** Yerel kod ajanını `node /tam/yol/ona-motion/ona-mcp.mjs` ile bağlayabilirsin. Ortam kontrolü, proje oluşturma/inceleme, PNG önizlemeleri ve ilerleme/iptal destekli video işleri sunar. Sahne kodunu ajan kendi dosya araçlarıyla düzenler. [Kurulum ve ilk oturum rehberi](docs/MCP.md) İngilizce olarak hazırlanmıştır; [istemci yapılandırma örneği](mcp/client-config.example.json) de mevcuttur.
+
 **Zamanın saf bir fonksiyonu olarak hareketli grafik.** Sahneleri düz Canvas 2D ile `draw(ctx, t)` olarak yazıyorsun. Headless Chrome'da gerçek hareket bulanıklığıyla render ediliyor, ffmpeg ile kodlanıyor ve aynı vuruş ızgarasında Python'la sentezlenen sesle eşleniyor. Timeline editörü, keyframe ya da eklenti yok. Bu yüzden kod ajanlarıyla çok iyi çalışıyor: videoyu tarif edersin, storyboard'u onaylarsın, mp4'ü alırsın.
 
 ![examples/hello kontak baskısı](docs/preview.jpg)
