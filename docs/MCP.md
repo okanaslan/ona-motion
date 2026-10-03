@@ -10,7 +10,39 @@ Install the Node dependencies in this checkout:
 npm install
 ```
 
-Connect your MCP client by having it launch:
+### Shared localhost host (Streamable HTTP)
+
+Start one host in a separate terminal:
+
+```bash
+node /absolute/path/to/ona-motion/ona-mcp.mjs --transport http --host 127.0.0.1 --port 8766
+```
+
+Register the endpoint with Codex in the profile used by your client:
+
+```bash
+codex mcp add ona-motion --url http://127.0.0.1:8766/mcp
+codex mcp get ona-motion
+```
+
+Orca uses its managed account's `CODEX_HOME`; a command run inside its Codex terminal inherits that profile. A command in a separate terminal normally updates `~/.codex/config.toml`. Run the registration command in each profile you use. Restart or reconnect an existing client if it retains the previous connection.
+
+The corresponding Codex configuration is:
+
+```toml
+[mcp_servers.ona-motion]
+url = "http://127.0.0.1:8766/mcp"
+```
+
+Multiple clients share the same workspace, artifacts and sequential render queue through independent MCP sessions. Disconnecting a client leaves submitted video jobs running. Stopping the host with Ctrl+C cancels unfinished jobs and releases the workspace lock. Optional `--workspace /absolute/path/to/checkout` selects another workspace.
+
+Check liveness with `curl http://127.0.0.1:8766/health`; use MCP `check_environment` to assess render readiness. HTTP request, tool name, status, duration, session and startup/shutdown diagnostics go to stderr as JSON. Logs exclude request arguments, scene source and authorization headers. They are not automatically saved to a log file.
+
+HTTP binds only to `127.0.0.1` or `::1` and rejects nonlocal hosts and cross-origin requests. The host limits sessions to 64, request bodies to 4 MiB and body reads to 15 seconds. Idle sessions expire after 30 minutes when no response is open. This release hosts on localhost; remote hosting and authentication remain future work.
+
+### Client-owned stdio connection
+
+For stdio, connect your MCP client by having it launch:
 
 ```bash
 node /absolute/path/to/ona-motion/ona-mcp.mjs
@@ -22,7 +54,9 @@ The server defaults to the checkout containing its executable. To select another
 node /absolute/path/to/ona-motion/ona-mcp.mjs --workspace /absolute/path/to/checkout
 ```
 
-A workspace must contain `engine/`, `templates/`, and the project dependencies. Configure one server per workspace. The server remains attached to its client's stdin/stdout; it closes its browser, encoder and queue when the client disconnects or sends a termination signal.
+A workspace must contain `engine/`, `templates/`, and the project dependencies. Configure one host per workspace. In stdio mode, the server remains attached to its client's stdin/stdout; it closes its browser, encoder and queue when the client disconnects or sends a termination signal.
+
+Running a stdio server manually does not create a network endpoint. If it already owns the workspace, another client-launched server exits with `WORKSPACE_BUSY` before initialization. Stop that process and use the shared HTTP host for multiple clients. Do not delete a live host's lock file.
 
 For clients accepting a `mcpServers` JSON configuration, adapt [client-config.example.json](../mcp/client-config.example.json):
 

@@ -12,6 +12,8 @@ node ona.mjs stills examples/<name> 1.5s,4s # full-size stills → out/stills/
 python examples/<name>/sound.py            # → out/audio.wav (prints LUFS / true peak)
 node ona.mjs render examples/<name> [--lang en]   # → out/<name>[-en].mp4
 node ona-mcp.mjs [--workspace /path/to/checkout] # local MCP server (stdio)
+node ona-mcp.mjs --transport http --port 8766 # shared localhost MCP host
+codex mcp add ona-motion --url http://127.0.0.1:8766/mcp # connect Codex to HTTP host
 node ona-setup.mjs --ffmpeg /path/to/ffmpeg --ffprobe /path/to/ffprobe # persistent local encoders
 npm test                                  # project, job and MCP contract checks
 ```
@@ -35,7 +37,7 @@ Requirements: Node 18+, Python 3.10+ with numpy and scipy, ffmpeg on PATH, and C
 - Sound: every visual event gets a sound on the same timeline; aim for about -14 LUFS and ≤ -1 dBFS.
 - When retiming or restyling an existing example, look for what the change does not reach on its own: absolute seconds in `sound.py`, numbers quoted in copy (frame counts, durations, BPM labels), helper defaults such as `accent`. Render a sheet and read the end card. `examples/edit-demo` shows one such round with its real diff.
 - Never commit anything under `out/`, rendered media or `node_modules/`.
-- MCP setup and the first connected session are documented in `docs/MCP.md`. Launch `ona-mcp.mjs` directly from MCP clients so stdout contains only protocol messages.
+- MCP setup and the first connected session are documented in `docs/MCP.md`. Use one HTTP host per workspace for multiple clients. In stdio mode, launch `ona-mcp.mjs` directly from the client so stdout contains only protocol messages; do not also start it manually.
 - Store ona-motion consumer skills in the global LOR catalog. Discover, load and maintain them through LOR MCP; do not keep duplicate skill files or registration catalogs in this repository.
 - Keep CLI and MCP operations in the shared `lib/` modules. MCP callers use project paths relative to the configured workspace; validate traversal and symlinks before reading or writing.
 - Video jobs have durable IDs and unique output directories. Preserve cancellation cleanup and terminal states; do not silently restart interrupted renders.
@@ -50,10 +52,10 @@ Requirements: Node 18+, Python 3.10+ with numpy and scipy, ffmpeg on PATH, and C
 - `engine/player.html`: loads a project's fonts and scene; used by both preview and render.
 - `ona.mjs`: CLI adapter for shared project and rendering operations.
 - `lib/`: project validation, workspace containment, environment checks, preview server, frame rendering and video encoding.
-- `ona-mcp.mjs`: stdio MCP entry point; defaults to this checkout, with an optional `--workspace`.
+- `ona-mcp.mjs`: stdio and localhost HTTP MCP entry point; defaults to this checkout, with an optional `--workspace`.
 - `mcp/`: validated tools, artifact resources, durable render queue and cancellation.
 - `docs/MCP.md`: setup, tool contracts, resources, job lifecycle and the first connected session.
-- `tests/`: focused project, job, artifact and stdio contract checks; real MCP rendering is opt-in with `ONA_RENDER_CHECK=1`.
+- `tests/`: focused project, job, artifact, stdio and HTTP contract checks; real MCP rendering is opt-in with `ONA_RENDER_CHECK=1`.
 - `audio/onasynth.py`: synthesis, timeline mixer, reverb, sidechain, mastering.
 - `audio/onaextras.py`: `stamp`, `counter_ticks`, `echo`, `glitch_burst`, `tick`, `tom`.
 - `examples/hello/`: reference scene using most techniques.

@@ -51,13 +51,14 @@ node ona.mjs preview examples/launch-teaser
 
 ## MCP server
 
-Connect a local coding agent to the same project and rendering operations through MCP:
+Start a shared localhost MCP host in a separate terminal:
 
 ```bash
-node /absolute/path/to/ona-motion/ona-mcp.mjs
+node /absolute/path/to/ona-motion/ona-mcp.mjs --transport http --port 8766
+codex mcp add ona-motion --url http://127.0.0.1:8766/mcp
 ```
 
-The server provides environment checks, project creation/inspection, PNG previews, and video jobs with progress and cancellation. Start with `check_environment`, then `render_frames` for `examples/hello`. The agent edits scene code using its local filesystem tools. See [MCP setup and first session](docs/MCP.md) and the [client configuration example](mcp/client-config.example.json).
+The server provides environment checks, project creation, revision-checked scene authoring, PNG previews, video jobs with progress and cancellation, and encoded-video inspection. Start with `check_environment`, then `render_frames` for `examples/hello`. Multiple agents can consume its tools and resources without access to this repository. See [MCP setup and first session](docs/MCP.md). Client-owned stdio connections are also supported; see the [stdio configuration example](mcp/client-config.example.json).
 
 ## A scene in 20 lines
 
