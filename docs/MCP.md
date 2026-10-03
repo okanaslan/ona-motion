@@ -80,8 +80,9 @@ Use an absolute Node executable path if the desktop client's PATH does not inclu
 3. Call `render_frames` with `{"project":"examples/hello","count":4,"subframes":1}`. Inspect the returned contact sheet. The client must support image content to show the preview.
 4. Read `ona-motion://scene-guide`, then create a project with `create_project`, for example `{"name":"launch-teaser","duration":15,"width":1080,"height":1080}`. Use `read_scene` and submit the approved scene source with `update_scene` and its returned revision, then render another contact sheet.
 5. Existing `out/audio.wav` is used automatically. MCP audio generation is not available; missing audio produces a silent video.
-6. With ffmpeg available, call `render_video` with `{"project":"examples/hello","subframes":1}`. Save the returned `result.id` and call `get_job` with `{"jobId":"<returned UUID>"}` until the job reaches a terminal state.
-7. Call `inspect_video` with `{"jobId":"<completed UUID>","countFrames":true,"verifyDecode":true}` to measure the encoded file. Call `extract_video_frames` with the same job ID and `count: 6`, then inspect the returned contact sheet.
+6. With ffmpeg available, call `render_video` with `{"project":"examples/hello","subframes":1}`. Save the returned `result.id` and call `get_job` with `{"jobId":"<returned UUID>"}` until the job reaches a terminal state. Check after roughly two seconds, then back off to five, ten, and fifteen seconds while unfinished.
+7. Call `inspect_video` with `{"jobId":"<completed UUID>","countFrames":true,"verifyDecode":true}` to measure the encoded file. Call `extract_video_frames` with the same job ID and `count: 6`, then inspect the returned contact sheet. Use `get_artifact` with a saved PNG URI for original-resolution inspection without another extraction pass; report the dimensions actually viewed.
+8. Deliver the completed job's `artifact.downloadUrl` when available, together with its job ID and MCP artifact URI. Server paths are local to the host; a localhost download URL works only on that machine.
 
 A scene is authored in code supplied by the consumer. The MCP interface supports reading and updating scenes and project configuration; consumers do not need the server repository or local filesystem tools. It does not generate audio or run Python sound scripts.
 
@@ -127,6 +128,8 @@ Four global LOR skills guide agents consuming the public MCP interface:
 Use LOR's matching workflow with the consumer's current workspace, then load the relevant entry with `get_skill_detail`. Exact lookup uses the canonical name above and `scope: "global"`. Full instructions are stored in LOR; consumers do not need this checkout or an installed local skill to read them through LOR.
 
 The skills discover live tool schemas and report missing capabilities. A consumer can plan, author scenes, inspect, preview and export through MCP. Audio generation remains outside the public interface.
+
+The global `ona-motion-consumer`, `ona-motion-visual-review`, and `ona-motion-export` entries were updated to v1.2.0 for saved-image retrieval, explicit original/displayed dimensions, HTTP download delivery, and polling backoff. They also call for concise tool discovery with full schemas loaded only as needed. Their updates were applied through revision-bound proposals and verified by reading back the stored entries.
 
 LOR is the source of truth for these skills. Retrieve and use the full instructions through LOR MCP. Maintain instructions and routing in the global catalog, using its revision-protected proposal and apply workflow, then read back the updated entry. Review stored instructions when public capabilities change. This repository does not maintain copies of consumer skills or registration catalogs.
 
