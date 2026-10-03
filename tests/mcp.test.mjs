@@ -3,12 +3,13 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { DEFAULT_WORKSPACE } from '../lib/project.mjs';
 
 test('stdio server discovers tools, validates inputs, serves resources and shuts down cleanly', async t => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ona-motion-mcp-'));
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ona-motion-mcp-')));
   fs.mkdirSync(path.join(root, 'engine')); fs.writeFileSync(path.join(root, 'engine/player.html'), '');
   fs.mkdirSync(path.join(root, 'examples'));
   fs.cpSync(path.join(DEFAULT_WORKSPACE, 'templates'), path.join(root, 'templates'), { recursive: true });
@@ -18,9 +19,18 @@ test('stdio server discovers tools, validates inputs, serves resources and shuts
   t.after(async () => { await client.close(); fs.rmSync(root, { recursive: true, force: true }); });
   await client.connect(transport);
   const tools = await client.listTools();
-  assert.deepEqual(tools.tools.map(tool => tool.name).sort(), ['cancel_job', 'check_environment', 'create_project', 'extract_video_frames', 'get_job', 'inspect_project', 'inspect_video', 'list_jobs', 'read_scene', 'render_frames', 'render_video', 'update_project', 'update_scene']);
+  assert.deepEqual(tools.tools.map(tool => tool.name).sort(), ['cancel_job', 'check_environment', 'create_project', 'extract_video_frames', 'get_artifact', 'get_job', 'inspect_project', 'inspect_video', 'list_jobs', 'read_scene', 'render_frames', 'render_video', 'update_project', 'update_scene']);
   const created = await client.callTool({ name: 'create_project', arguments: { name: 'demo', duration: 3 } });
   assert.equal(created.structuredContent.ok, true); assert.equal(created.structuredContent.result.frames, 180);
+  const id = randomUUID(), dir = path.join(root, 'examples/demo/out/mcp/frames', id);
+  fs.mkdirSync(dir, { recursive: true });
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jGScAAAAASUVORK5CYII=', 'base64');
+  const filename = path.join(dir, 'f00000.png'); fs.writeFileSync(filename, png);
+  fs.writeFileSync(path.join(root, 'out/.ona-motion/frames', `${id}.json`), JSON.stringify({ project: 'examples/demo', frames: [{ path: filename }] }));
+  const artifact = await client.callTool({ name: 'get_artifact', arguments: { uri: `ona-motion://frames/${id}/f00000.png` } });
+  assert.equal(artifact.structuredContent.ok, true);
+  assert.deepEqual(artifact.structuredContent.result.image.displayed, { width: 1, height: 1 });
+  assert.deepEqual(Buffer.from(artifact.content.find(c => c.type === 'image').data, 'base64'), png);
   const inspected = await client.callTool({ name: 'inspect_project', arguments: { project: 'examples/demo' } });
   assert.equal(inspected.structuredContent.result.playbackDuration, 3);
   const duplicate = await client.callTool({ name: 'create_project', arguments: { name: 'demo' } });

@@ -12,7 +12,7 @@ import { MAX_SCENE_BYTES, readScene, updateScene, updateProject } from '../lib/a
 import { inspectVideo, extractVideoFrames } from '../lib/video-review.mjs';
 import { SCENE_GUIDE } from './scene-guide.mjs';
 import { JobManager } from './jobs.mjs';
-import { ArtifactStore, MAX_INLINE_BYTES, link } from './artifacts.mjs';
+import { ArtifactStore, MAX_INLINE_BYTES, imageInspection, link } from './artifacts.mjs';
 
 const projectSchema = z.string().min(1).max(1024).describe('Project folder relative to the configured workspace, e.g. examples/hello.');
 const idSchema = z.string().uuid();
@@ -40,6 +40,7 @@ render_video returns a durable job ID immediately; poll get_job until completed,
 Use cancel_job to stop a queued or running export. Use list_jobs to rediscover recent jobs after reconnecting.
 Use inspect_video on a completed job to measure encoded properties; optionally count frames and verify video decoding.
 Use extract_video_frames to inspect actual MP4 frames and transitions. Source previews alone do not verify the encoded output.
+Use get_artifact with a returned artifact URI to inspect a saved original PNG without rerendering. Tool image metadata reports original/displayed dimensions and resizing.
 Artifacts are local files and MCP resources. Large files can be opened using the returned local path.
 Only trusted local projects should be rendered: their scene code runs in the browser and may access the network.
 One server owns the configured workspace at a time. Jobs run sequentially; stopped jobs are not resumed automatically.`;
@@ -62,17 +63,22 @@ export function createMotionRuntime(workspace) {
     const manifest = artifacts.saveFrames(id, rendered), content = [];
     const entries = rendered.sheet ? [rendered.sheet, ...rendered.frames] : rendered.frames;
     let inlineBytes = 0;
+    const inspections = new Map();
     for (const entry of entries) {
       const uri = `ona-motion://frames/${id}/${path.basename(entry.path)}`;
       content.push(link(uri, entry.path, 'image/png'));
       const imageBuffer = entry.previewBuffer ?? entry.buffer;
+      const inspection = imageInspection(entry.buffer, imageBuffer);
+      let inline = false;
       if ((!rendered.sheet || entry === rendered.sheet) && inlineBytes + Math.ceil(imageBuffer.length * 4 / 3) <= MAX_INLINE_BYTES) {
         content.push({ type: 'image', data: imageBuffer.toString('base64'), mimeType: 'image/png' });
         inlineBytes += Math.ceil(imageBuffer.length * 4 / 3);
+        inline = true;
       }
+      inspections.set(entry.path, { ...inspection, inline });
     }
-    return { result: { ...manifest, frames: manifest.frames.map(frame => ({ ...frame, uri: `ona-motion://frames/${id}/${path.basename(frame.path)}` })),
-      ...(manifest.sheet ? { sheet: { ...manifest.sheet, uri: `ona-motion://frames/${id}/sheet.png` } } : {}), inlineImages: content.filter(c => c.type === 'image').length }, content };
+    return { result: { ...manifest, frames: manifest.frames.map(frame => ({ ...frame, uri: `ona-motion://frames/${id}/${path.basename(frame.path)}`, image: inspections.get(frame.path) })),
+      ...(manifest.sheet ? { sheet: { ...manifest.sheet, uri: `ona-motion://frames/${id}/sheet.png`, image: inspections.get(manifest.sheet.path) } } : {}), inlineImages: content.filter(c => c.type === 'image').length }, content };
   }
   async function mediaCall(extra, handler) {
     if ([...calls].some(call => call.media)) throw new MotionError('MEDIA_BUSY', 'Another encoded-video review is running. Wait for it or cancel that request.');
@@ -107,6 +113,9 @@ export function createMotionRuntime(workspace) {
     }
     tool('check_environment', 'Check the configured workspace, browser, Node dependencies, fonts, ffmpeg and Python audio prerequisites. Does not install anything.', {}, true,
       async () => ({ result: await checkEnvironment(root) }));
+    tool('get_artifact', 'Retrieve a registered saved artifact by its returned URI. PNGs return original-resolution image content and exact original/displayed dimensions without rerendering. Videos return metadata and a resource link. Oversized PNGs return ARTIFACT_TOO_LARGE.', {
+      uri: z.string().min(1).max(1024),
+    }, true, async ({ uri }) => artifacts.get(uri));
     tool('create_project', 'Create examples/<name> from the blank template. Refuses to overwrite an existing project. Use read_scene and update_scene afterward to author its animation.', {
       name: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,79}$/i),
       ...configSchema,

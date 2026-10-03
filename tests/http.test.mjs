@@ -11,7 +11,7 @@ import { createMotionServer } from '../mcp/server.mjs';
 import { DEFAULT_WORKSPACE } from '../lib/project.mjs';
 
 async function fixture(t, options = {}) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ona-http-'));
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ona-http-')));
   fs.mkdirSync(path.join(root, 'examples'));
   fs.mkdirSync(path.join(root, 'engine')); fs.writeFileSync(path.join(root, 'engine/player.html'), '');
   fs.cpSync(path.join(DEFAULT_WORKSPACE, 'templates'), path.join(root, 'templates'), { recursive: true });
@@ -31,7 +31,7 @@ test('HTTP clients share authoring and jobs without acquiring another workspace 
   const { root, host, logs } = await fixture(t);
   const [a, b] = await Promise.all([connect(t, host.url), connect(t, host.url)]);
   assert.notEqual(a.transport.sessionId, b.transport.sessionId);
-  assert.equal((await a.client.listTools()).tools.length, 13);
+  assert.equal((await a.client.listTools()).tools.length, 14);
   const created = await a.client.callTool({ name: 'create_project', arguments: { name: 'demo', duration: 1 } });
   assert.equal(created.structuredContent.ok, true);
   const scene = await b.client.callTool({ name: 'read_scene', arguments: { project: 'examples/demo' } });
@@ -88,7 +88,7 @@ test('HTTP session capacity is reclaimed on DELETE; bind errors release the work
   await assert.rejects(second.connect(new StreamableHTTPClientTransport(new URL(host.url))), /Session capacity reached/);
   await a.transport.terminateSession(); await a.client.close();
   const b = await connect(t, host.url);
-  assert.equal((await b.client.listTools()).tools.length, 13);
+  assert.equal((await b.client.listTools()).tools.length, 14);
   await host.close();
   const blocker = http.createServer();
   await new Promise(resolve => blocker.listen(0, '127.0.0.1', resolve));
@@ -113,7 +113,7 @@ test('idle sessions expire without closing the workspace runtime', async t => {
   assert.equal(response.status, 404);
   assert.equal(fs.existsSync(path.join(root, 'out/.ona-motion/server.lock')), true);
   const b = await connect(t, host.url);
-  assert.equal((await b.client.listTools()).tools.length, 13);
+  assert.equal((await b.client.listTools()).tools.length, 14);
 });
 
 test('chunked bodies are bounded and interrupted/slow bodies do not hang the host', async t => {

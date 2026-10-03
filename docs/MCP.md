@@ -95,6 +95,14 @@ Read `ona-motion://scene-guide` for the scene contract, timing semantics, exampl
 
 Stale revisions return `REVISION_CONFLICT`. Read the current file/config and reconcile changes before retrying. After an uncertain response, read back before resubmitting. Updates return the stored source/config and new revision. `PROJECT_BUSY` prevents edits while a frame request or queued/running video job uses that project.
 
+## Inspecting saved images
+
+Call `get_artifact` with a PNG URI returned by `render_frames` or `extract_video_frames`. It returns the saved original PNG as native tool image content, without Chrome, ffmpeg, or another rendering pass. This supports clients that cannot display binary image resources directly. Resource URIs and `resources/read` remain supported.
+
+The result's `image.original` and `image.displayed` report pixel dimensions; `image.resized` states whether they differ. Render/extraction results also include this metadata for their embedded previews and `image.inline` to identify which images were included. Embedded previews are capped at 1024 pixels; `get_artifact` returns the original image when it fits the 6 MiB base64 image-content budget. Oversized images return `ARTIFACT_TOO_LARGE`.
+
+Do not describe a resized preview as original resolution. Reuse saved artifacts for detailed inspection instead of rendering the same scene again merely to display it.
+
 ## LOR consumer skills
 
 Four global LOR skills guide agents consuming the public MCP interface:
@@ -117,6 +125,7 @@ LOR is the source of truth for these skills. Retrieve and use the full instructi
 | Tool | Inputs | Result |
 |---|---|---|
 | `check_environment` | none | Dependency availability and frame/video readiness |
+| `get_artifact` | returned artifact `uri` | Saved original PNG as image content with exact dimensions, or completed-video metadata and resource link |
 | `create_project` | `name`, optional size, timing, `subframes`, `fonts` | New `examples/<name>` project; existing projects are never overwritten |
 | `inspect_project` | `project` | Config and `configRevision`, timing, font and soundtrack availability |
 | `read_scene` | `project` | Scene source and revision |
