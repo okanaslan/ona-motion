@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { createMotionRuntime } from './server.mjs';
+import { serveArtifact } from './downloads.mjs';
 
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
 function reply(res, status, message) {
@@ -70,6 +71,7 @@ export async function startHttpServer(workspace, {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ ok: true, server: 'ona-motion', transport: 'http', sessions: sessions.size }));
     }
+    if (url.pathname.startsWith('/artifacts/')) return serveArtifact(req, res, runtime.artifacts, url.pathname);
     if (url.pathname !== '/mcp') return reply(res, 404, 'Not found');
     if (!['POST', 'GET', 'DELETE'].includes(req.method)) {
       res.setHeader('Allow', 'POST, GET, DELETE'); return reply(res, 405, 'Method not allowed');
@@ -135,6 +137,7 @@ export async function startHttpServer(workspace, {
     });
   } catch (error) { await close(); throw error; }
   const address = server.address(), url = `http://${host === '::1' ? '[::1]' : host}:${address.port}/mcp`;
+  runtime.artifacts.downloadBaseUrl = url;
   log({ event: 'server_start', url });
   return { server, runtime, url, close };
 }

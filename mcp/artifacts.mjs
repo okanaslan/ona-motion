@@ -22,7 +22,11 @@ export function imageInspection(original, displayed = original) {
 export class ArtifactStore {
   constructor(root, jobs) {
     this.root = root; this.jobs = jobs;
+    this.downloadBaseUrl = null;
     this.dir = scopedPath(root, 'out/.ona-motion/frames'); fs.mkdirSync(this.dir, { recursive: true });
+  }
+  downloads(uri) {
+    return this.downloadBaseUrl ? { downloadUrl: new URL(`/artifacts/${uri.slice('ona-motion://'.length)}`, this.downloadBaseUrl).href } : {};
   }
   saveFrames(id, result) {
     const manifest = { id, project: result.project, ...(result.source ? { source: result.source } : {}), frames: result.frames.map(({ frame, time, requestedTime, path: file }) => ({ frame, time, ...(requestedTime !== undefined ? { requestedTime } : {}), path: file })), ...(result.sheet ? { sheet: { path: result.sheet.path } } : {}) };
@@ -52,7 +56,7 @@ export class ArtifactStore {
     } else if ((match = /^ona-motion:\/\/jobs\/([^/]+)\/video$/.exec(uri))) {
       filename = this.video(match[1]); mimeType = 'video/mp4';
     } else throw new MotionError('INVALID_ARTIFACT_URI', 'Choose a returned ona-motion frame or completed video artifact URI.');
-    return { uri, path: filename, name: path.basename(filename), mimeType, bytes: fs.statSync(filename).size };
+    return { uri, path: filename, name: path.basename(filename), mimeType, bytes: fs.statSync(filename).size, ...this.downloads(uri) };
   }
   get(uri) {
     const result = this.resolve(uri);
@@ -60,7 +64,7 @@ export class ArtifactStore {
     if (result.mimeType === 'image/png') {
       // The limit includes base64 expansion, as it does for render tool responses.
       if (Math.ceil(result.bytes * 4 / 3) > MAX_INLINE_BYTES) {
-        throw new MotionError('ARTIFACT_TOO_LARGE', 'Original PNG exceeds the MCP image-content limit. Use its download URL when HTTP hosting is available.', { uri, bytes: result.bytes, maxInlineBytes: MAX_INLINE_BYTES });
+        throw new MotionError('ARTIFACT_TOO_LARGE', 'Original PNG exceeds the MCP image-content limit. Use its download URL when HTTP hosting is available.', { uri, bytes: result.bytes, maxInlineBytes: MAX_INLINE_BYTES, ...this.downloads(uri) });
       }
       const buffer = fs.readFileSync(result.path);
       result.image = imageInspection(buffer);

@@ -4,11 +4,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
+import { randomUUID } from 'node:crypto';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { startHttpServer } from '../mcp/http.mjs';
 import { createMotionServer } from '../mcp/server.mjs';
-import { DEFAULT_WORKSPACE } from '../lib/project.mjs';
+import { DEFAULT_WORKSPACE, createProject } from '../lib/project.mjs';
+import { MAX_RESOURCE_BYTES } from '../mcp/artifacts.mjs';
+import { byteRange } from '../mcp/downloads.mjs';
 
 async function fixture(t, options = {}) {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ona-http-')));
@@ -127,4 +130,89 @@ test('chunked bodies are bounded and interrupted/slow bodies do not hang the hos
   assert.equal(await send(' '.repeat(1025)), 413);
   assert.equal(await send('{', false), 408);
   assert.equal((await fetch(host.url.replace('/mcp', '/health'))).status, 200);
+});
+
+test('saved PNGs and large videos download over HTTP with HEAD and byte-range seeking', async t => {
+  const { root, host } = await fixture(t);
+  createProject(root, 'demo');
+  const { client } = await connect(t, host.url);
+  const id = randomUUID(), dir = path.join(root, 'examples/demo/out/mcp/frames', id);
+  fs.mkdirSync(dir, { recursive: true });
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jGScAAAAASUVORK5CYII=', 'base64');
+  const filename = path.join(dir, 'f00000.png'); fs.writeFileSync(filename, png);
+  host.runtime.artifacts.saveFrames(id, { project: 'examples/demo', frames: [{ frame: 0, time: 0, path: filename }] });
+  const image = await client.callTool({ name: 'get_artifact', arguments: { uri: `ona-motion://frames/${id}/f00000.png` } });
+  assert.equal(image.structuredContent.ok, true);
+  const imageUrl = image.structuredContent.result.downloadUrl;
+  assert.equal(new URL(imageUrl).origin, new URL(host.url).origin);
+  assert.deepEqual(Buffer.from(await (await fetch(imageUrl)).arrayBuffer()), png);
+  const imageHead = await fetch(imageUrl, { method: 'HEAD' });
+  assert.equal(imageHead.headers.get('Content-Type'), 'image/png');
+  assert.equal(Number(imageHead.headers.get('Content-Length')), png.length);
+  assert.equal((await imageHead.arrayBuffer()).byteLength, 0);
+  assert.match((await fetch(imageUrl + '?download=1')).headers.get('Content-Disposition'), /^attachment/);
+  const imageFd = fs.openSync(filename, 'r+'); fs.ftruncateSync(imageFd, MAX_RESOURCE_BYTES + 1); fs.closeSync(imageFd);
+  const oversized = await client.callTool({ name: 'get_artifact', arguments: { uri: image.structuredContent.result.uri } });
+  assert.equal(oversized.structuredContent.error.code, 'ARTIFACT_TOO_LARGE');
+  assert.equal(oversized.structuredContent.error.details.downloadUrl, imageUrl);
+  assert.equal(Number((await fetch(imageUrl, { method: 'HEAD' })).headers.get('Content-Length')), MAX_RESOURCE_BYTES + 1);
+  const videoId = randomUUID(), videoDir = path.join(root, 'examples/demo/out/mcp/jobs', videoId);
+  fs.mkdirSync(videoDir, { recursive: true });
+  const video = path.join(videoDir, 'video.mp4'), size = MAX_RESOURCE_BYTES + 1024;
+  fs.writeFileSync(video, 'test-video-header');
+  const fd = fs.openSync(video, 'r+'); fs.ftruncateSync(fd, size); fs.closeSync(fd);
+  const record = { id: videoId, project: 'examples/demo', status: 'completed', createdAt: new Date().toISOString(), result: { path: video } };
+  host.runtime.jobs.records.set(videoId, record); host.runtime.jobs.persist(record);
+  const job = await client.callTool({ name: 'get_job', arguments: { jobId: videoId } });
+  const videoUrl = job.structuredContent.result.artifact.downloadUrl;
+  const meta = await client.callTool({ name: 'get_artifact', arguments: { uri: `ona-motion://jobs/${videoId}/video` } });
+  assert.equal(meta.structuredContent.result.downloadUrl, videoUrl);
+  assert.equal(meta.content.some(c => c.type === 'image'), false);
+  await assert.rejects(client.readResource({ uri: `ona-motion://jobs/${videoId}/video` }), /MCP reads are limited/);
+  const download = await fetch(videoUrl);
+  assert.equal(download.status, 200); assert.equal(download.headers.get('Content-Type'), 'video/mp4');
+  assert.equal((await download.arrayBuffer()).byteLength, size);
+  for (const [range, start, end] of [['bytes=0-3', 0, 3], ['bytes=5-', 5, size - 1], ['bytes=-4', size - 4, size - 1], ['bytes=0-99999999', 0, size - 1]]) {
+    const res = await fetch(videoUrl, { headers: { Range: range } });
+    assert.equal(res.status, 206); assert.equal(res.headers.get('Content-Range'), `bytes ${start}-${end}/${size}`);
+    assert.equal((await res.arrayBuffer()).byteLength, end - start + 1);
+  }
+  const badRange = await fetch(videoUrl, { headers: { Range: `bytes=${size}-` } });
+  assert.equal(badRange.status, 416); assert.equal(badRange.headers.get('Content-Range'), `bytes */${size}`);
+  const unchanged = await fetch(videoUrl, { headers: { Range: 'bytes=0-3', 'If-Range': 'Thu, 01 Jan 1970 00:00:00 GMT' } });
+  assert.equal(unchanged.status, 200); await unchanged.body.cancel();
+  const head = await fetch(videoUrl, { method: 'HEAD', headers: { Range: 'bytes=0-3' } });
+  assert.equal(head.status, 200); assert.equal(Number(head.headers.get('Content-Length')), size);
+  assert.equal((await fetch(videoUrl, { method: 'POST' })).status, 405);
+  const matching = await fetch(videoUrl, { headers: { Range: 'bytes=0-3', 'If-Range': head.headers.get('Last-Modified') } });
+  assert.equal(matching.status, 206); assert.equal(Buffer.from(await matching.arrayBuffer()).toString(), 'test');
+  const unmatchedTag = await fetch(videoUrl, { headers: { Range: 'bytes=0-3', 'If-Range': '"9999"' } });
+  assert.equal(unmatchedTag.status, 200); await unmatchedTag.body.cancel();
+  record.status = 'running';
+  assert.equal((await fetch(videoUrl)).status, 404);
+  record.status = 'completed';
+});
+
+test('download routes reject unknown artifacts, traversal, symlinks and cross-origin requests', async t => {
+  const { root, host } = await fixture(t); createProject(root, 'demo');
+  const id = randomUUID(), dir = path.join(root, 'examples/demo/out/mcp/frames', id);
+  fs.mkdirSync(dir, { recursive: true });
+  const filename = path.join(dir, 'f00000.png');
+  const secret = path.join(root, 'private.png'); fs.writeFileSync(secret, 'private'); fs.symlinkSync(secret, filename);
+  host.runtime.artifacts.saveFrames(id, { project: 'examples/demo', frames: [{ path: filename }] });
+  const base = new URL('/artifacts/', host.url).href;
+  for (const suffix of [`frames/${id}/f00000.png`, `frames/${id}/missing.png`, `frames/${id}/%2Fprivate.png`, `frames/${id}/%252e%252e`, `jobs/${randomUUID()}/video`, '%zz']) {
+    assert.equal((await fetch(base + suffix)).status, 404);
+  }
+  assert.equal((await fetch(base + `frames/${id}/f00000.png`, { headers: { Origin: 'https://example.com' } })).status, 403);
+  const denied = await new Promise(resolve => {
+    const req = http.request(base + `frames/${id}/f00000.png`, { headers: { Host: 'evil.example' } }, res => { res.resume(); resolve(res.statusCode); }); req.end();
+  });
+  assert.equal(denied, 403);
+});
+
+test('single-range parsing rejects malformed or unsafe ranges', () => {
+  for (const value of ['bytes=', 'bytes=-0', 'bytes=4-2', 'bytes=100-', 'bytes=0-1,2-3', 'bytes=9007199254740992-', 'items=0-1']) assert.equal(byteRange(value, 100), null);
+  assert.deepEqual(byteRange('bytes=-200', 100), { start: 0, end: 99 });
+  assert.equal(byteRange('bytes=0-', 0), null);
 });

@@ -99,9 +99,19 @@ Stale revisions return `REVISION_CONFLICT`. Read the current file/config and rec
 
 Call `get_artifact` with a PNG URI returned by `render_frames` or `extract_video_frames`. It returns the saved original PNG as native tool image content, without Chrome, ffmpeg, or another rendering pass. This supports clients that cannot display binary image resources directly. Resource URIs and `resources/read` remain supported.
 
-The result's `image.original` and `image.displayed` report pixel dimensions; `image.resized` states whether they differ. Render/extraction results also include this metadata for their embedded previews and `image.inline` to identify which images were included. Embedded previews are capped at 1024 pixels; `get_artifact` returns the original image when it fits the 6 MiB base64 image-content budget. Oversized images return `ARTIFACT_TOO_LARGE`.
+The result's `image.original` and `image.displayed` report pixel dimensions; `image.resized` states whether they differ. Render/extraction results also include this metadata for their embedded previews and `image.inline` to identify which images were included. For images not embedded, `displayed` and `resized` are null. Embedded previews are capped at 1024 pixels; `get_artifact` returns the original image when it fits the 6 MiB base64 image-content budget. Oversized images return `ARTIFACT_TOO_LARGE`, with a download URL in error details when hosted over HTTP.
 
 Do not describe a resized preview as original resolution. Reuse saved artifacts for detailed inspection instead of rendering the same scene again merely to display it.
+
+## HTTP artifact downloads
+
+HTTP tool results return `downloadUrl` for saved frames, contact sheets, and completed video artifacts. Retrieve a URL for an existing artifact with `get_artifact`; completed `get_job` responses also include it under `artifact`. The base address comes from the host's configured listening address, never the request's Host header. Stdio results omit download URLs.
+
+The host serves registered artifacts at `/artifacts/frames/<renderId>/<filename>` and `/artifacts/jobs/<jobId>/video`. These endpoints resolve manifest/job entries and apply the same workspace, symlink, and output-directory checks as MCP resources. They cannot read arbitrary paths or unfinished video output.
+
+Downloads stream files independently of the MCP resource-size limit. `GET` returns file contents; `HEAD` returns MIME type and size without the body. Video clients can seek using a single byte range; successful ranges return `206` with `Content-Range`, and invalid or unsatisfiable ranges return `416`. Files open inline by default; add `?download=1` to request an attachment. Interrupted downloads release the stream and file handle.
+
+Prefer `downloadUrl` for delivery. A returned `path` belongs to the server machine; `get_artifact` remains the way to present a saved image as MCP image content. URLs work while this HTTP host and its saved artifacts remain available. The current listener and download endpoints are local only; remote deployment and authentication are separate work.
 
 ## LOR consumer skills
 

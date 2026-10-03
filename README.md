@@ -58,7 +58,7 @@ node /absolute/path/to/ona-motion/ona-mcp.mjs --transport http --port 8766
 codex mcp add ona-motion --url http://127.0.0.1:8766/mcp
 ```
 
-The server provides environment checks, project creation, revision-checked scene authoring, PNG previews, video jobs with progress and cancellation, and encoded-video inspection. Start with `check_environment`, then `render_frames` for `examples/hello`. Multiple agents can consume its tools and resources without access to this repository. See [MCP setup and first session](docs/MCP.md). Client-owned stdio connections are also supported; see the [stdio configuration example](mcp/client-config.example.json).
+The server provides environment checks, project creation, revision-checked scene authoring, PNG previews, video jobs with progress and cancellation, and encoded-video inspection. Use `get_artifact` to inspect saved original images without rendering again. HTTP results include streaming download URLs for images and videos. Start with `check_environment`, then `render_frames` for `examples/hello`. Multiple agents can consume its tools and resources without access to this repository. See [MCP setup and first session](docs/MCP.md). Client-owned stdio connections are also supported; see the [stdio configuration example](mcp/client-config.example.json).
 
 ## A scene in 20 lines
 

@@ -41,7 +41,7 @@ Use cancel_job to stop a queued or running export. Use list_jobs to rediscover r
 Use inspect_video on a completed job to measure encoded properties; optionally count frames and verify video decoding.
 Use extract_video_frames to inspect actual MP4 frames and transitions. Source previews alone do not verify the encoded output.
 Use get_artifact with a returned artifact URI to inspect a saved original PNG without rerendering. Tool image metadata reports original/displayed dimensions and resizing.
-Artifacts are local files and MCP resources. Large files can be opened using the returned local path.
+HTTP hosting also returns downloadUrl for saved images and completed videos. Prefer it for delivery; paths refer to the server machine. Downloads stream files beyond MCP resource limits.
 Only trusted local projects should be rendered: their scene code runs in the browser and may access the network.
 One server owns the configured workspace at a time. Jobs run sequentially; stopped jobs are not resumed automatically.`;
 
@@ -75,10 +75,14 @@ export function createMotionRuntime(workspace) {
         inlineBytes += Math.ceil(imageBuffer.length * 4 / 3);
         inline = true;
       }
-      inspections.set(entry.path, { ...inspection, inline });
+      inspections.set(entry.path, inline ? { ...inspection, inline } : { original: inspection.original, displayed: null, resized: null, inline: false });
     }
-    return { result: { ...manifest, frames: manifest.frames.map(frame => ({ ...frame, uri: `ona-motion://frames/${id}/${path.basename(frame.path)}`, image: inspections.get(frame.path) })),
-      ...(manifest.sheet ? { sheet: { ...manifest.sheet, uri: `ona-motion://frames/${id}/sheet.png`, image: inspections.get(manifest.sheet.path) } } : {}), inlineImages: content.filter(c => c.type === 'image').length }, content };
+    const reference = filename => {
+      const uri = `ona-motion://frames/${id}/${path.basename(filename)}`;
+      return { uri, ...artifacts.downloads(uri) };
+    };
+    return { result: { ...manifest, frames: manifest.frames.map(frame => ({ ...frame, ...reference(frame.path), image: inspections.get(frame.path) })),
+      ...(manifest.sheet ? { sheet: { ...manifest.sheet, ...reference(manifest.sheet.path), image: inspections.get(manifest.sheet.path) } } : {}), inlineImages: content.filter(c => c.type === 'image').length }, content };
   }
   async function mediaCall(extra, handler) {
     if ([...calls].some(call => call.media)) throw new MotionError('MEDIA_BUSY', 'Another encoded-video review is running. Wait for it or cancel that request.');
@@ -113,7 +117,7 @@ export function createMotionRuntime(workspace) {
     }
     tool('check_environment', 'Check the configured workspace, browser, Node dependencies, fonts, ffmpeg and Python audio prerequisites. Does not install anything.', {}, true,
       async () => ({ result: await checkEnvironment(root) }));
-    tool('get_artifact', 'Retrieve a registered saved artifact by its returned URI. PNGs return original-resolution image content and exact original/displayed dimensions without rerendering. Videos return metadata and a resource link. Oversized PNGs return ARTIFACT_TOO_LARGE.', {
+    tool('get_artifact', 'Retrieve a registered saved artifact by its returned URI. PNGs return original-resolution image content and exact original/displayed dimensions without rerendering. Videos return metadata and a resource link. HTTP hosts also return downloadUrl. Oversized PNGs return ARTIFACT_TOO_LARGE with a downloadUrl when available.', {
       uri: z.string().min(1).max(1024),
     }, true, async ({ uri }) => artifacts.get(uri));
     tool('create_project', 'Create examples/<name> from the blank template. Refuses to overwrite an existing project. Use read_scene and update_scene afterward to author its animation.', {
@@ -173,7 +177,7 @@ export function createMotionRuntime(workspace) {
     function jobResult(job) {
       if (job.status !== 'completed') return { result: job };
       const filename = artifacts.video(job.id), uri = `ona-motion://jobs/${job.id}/video`;
-      return { result: { ...job, artifact: { uri, path: filename, mimeType: 'video/mp4', bytes: fs.statSync(filename).size } }, content: [link(uri, filename, 'video/mp4')] };
+      return { result: { ...job, artifact: { uri, path: filename, mimeType: 'video/mp4', bytes: fs.statSync(filename).size, ...artifacts.downloads(uri) } }, content: [link(uri, filename, 'video/mp4')] };
     }
     tool('render_video', 'Queue a video export and immediately return a durable job ID. Poll get_job for progress and output. Uses out/audio.wav if present; otherwise exports silently. One export runs at a time, with a 30-minute deadline.', {
       ...commonRender, crf: z.number().int().min(0).max(51).default(16),
@@ -228,7 +232,7 @@ export function createMotionRuntime(workspace) {
     await Promise.all([...calls].map(call => call.finished));
     await jobs.close(); await Promise.all([...servers].map(server => server.close()));
   })();
-  return { createServer, jobs, close };
+  return { createServer, jobs, artifacts, close };
 }
 
 // Stdio retains a single client and owns its runtime until disconnect.
